@@ -46,7 +46,6 @@ const PRIORITIES = [
 ];
 
 function TasksPage() {
-  const tasks = useList<Task>("tarefas_placeholder", { enabled: false });
   const all = useList<Task>("tasks", { order: { column: "created_at", ascending: false } });
   const save = useSave("tasks");
   const remove = useRemove("tasks", "Tarefa excluída");
@@ -59,7 +58,6 @@ function TasksPage() {
     category: "Geral",
     note: "",
   });
-  void tasks;
 
   const pending = (all.data ?? []).filter((t) => !t.done);
   const done = (all.data ?? []).filter((t) => t.done);

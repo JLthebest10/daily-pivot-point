@@ -13,7 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
+import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedHabitosIndexRouteImport } from './routes/_authenticated/habitos.index'
+import { Route as AuthenticatedHabitosIdRouteImport } from './routes/_authenticated/habitos.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,23 +36,37 @@ const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
   path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTarefasRoute = AuthenticatedTarefasRouteImport.update({
+  id: '/tarefas',
+  path: '/tarefas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedHabitosIndexRoute =
   AuthenticatedHabitosIndexRouteImport.update({
     id: '/habitos/',
     path: '/habitos/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHabitosIdRoute = AuthenticatedHabitosIdRouteImport.update({
+  id: '/habitos/$id',
+  path: '/habitos/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/tarefas': typeof AuthenticatedTarefasRoute
+  '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/tarefas': typeof AuthenticatedTarefasRoute
+  '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
 }
 export interface FileRoutesById {
@@ -59,19 +75,35 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
+  '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/redefinir-senha' | '/habitos/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/redefinir-senha'
+    | '/tarefas'
+    | '/habitos/$id'
+    | '/habitos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/redefinir-senha' | '/habitos'
+  to:
+    | '/'
+    | '/auth'
+    | '/redefinir-senha'
+    | '/tarefas'
+    | '/habitos/$id'
+    | '/habitos'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/redefinir-senha'
+    | '/_authenticated/tarefas'
+    | '/_authenticated/habitos/$id'
     | '/_authenticated/habitos/'
   fileRoutesById: FileRoutesById
 }
@@ -112,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/tarefas': {
+      id: '/_authenticated/tarefas'
+      path: '/tarefas'
+      fullPath: '/tarefas'
+      preLoaderRoute: typeof AuthenticatedTarefasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/habitos/': {
       id: '/_authenticated/habitos/'
       path: '/habitos'
@@ -119,14 +158,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHabitosIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/habitos/$id': {
+      id: '/_authenticated/habitos/$id'
+      path: '/habitos/$id'
+      fullPath: '/habitos/$id'
+      preLoaderRoute: typeof AuthenticatedHabitosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
+  AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
   AuthenticatedHabitosIndexRoute: typeof AuthenticatedHabitosIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
+  AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
   AuthenticatedHabitosIndexRoute: AuthenticatedHabitosIndexRoute,
 }
 
