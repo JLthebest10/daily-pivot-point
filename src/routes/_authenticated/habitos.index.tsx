@@ -81,7 +81,7 @@ function HabitsPage() {
                       toggle.mutate({
                         habitId: habit.id,
                         date: today,
-                        completionId: done?.id,
+                        ...(done ? { completionId: done.id } : {}),
                       })
                     }
                   />
