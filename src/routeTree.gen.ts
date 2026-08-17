@@ -25,6 +25,7 @@ import { Route as AuthenticatedHabitosIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedPetsIndexRouteImport } from './routes/_authenticated/pets.index'
 import { Route as AuthenticatedPetsIdRouteImport } from './routes/_authenticated/pets.$id'
 import { Route as AuthenticatedTreinoIndexRouteImport } from './routes/_authenticated/treino.index'
+import { Route as AuthenticatedTreinoIdRouteImport } from './routes/_authenticated/treino.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -108,6 +109,11 @@ const AuthenticatedTreinoIndexRoute =
     path: '/treino/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTreinoIdRoute = AuthenticatedTreinoIdRouteImport.update({
+  id: '/treino/$id',
+  path: '/treino/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/pets/$id': typeof AuthenticatedPetsIdRoute
+  '/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/pets/': typeof AuthenticatedPetsIndexRoute
   '/treino/': typeof AuthenticatedTreinoIndexRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/pets/$id': typeof AuthenticatedPetsIdRoute
+  '/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
   '/pets': typeof AuthenticatedPetsIndexRoute
   '/treino': typeof AuthenticatedTreinoIndexRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/_authenticated/pets/$id': typeof AuthenticatedPetsIdRoute
+  '/_authenticated/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/_authenticated/pets/': typeof AuthenticatedPetsIndexRoute
   '/_authenticated/treino/': typeof AuthenticatedTreinoIndexRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/habitos/$id'
     | '/pets/$id'
+    | '/treino/$id'
     | '/habitos/'
     | '/pets/'
     | '/treino/'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/habitos/$id'
     | '/pets/$id'
+    | '/treino/$id'
     | '/habitos'
     | '/pets'
     | '/treino'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tarefas'
     | '/_authenticated/habitos/$id'
     | '/_authenticated/pets/$id'
+    | '/_authenticated/treino/$id'
     | '/_authenticated/habitos/'
     | '/_authenticated/pets/'
     | '/_authenticated/treino/'
@@ -338,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTreinoIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/treino/$id': {
+      id: '/_authenticated/treino/$id'
+      path: '/treino/$id'
+      fullPath: '/treino/$id'
+      preLoaderRoute: typeof AuthenticatedTreinoIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -351,6 +370,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
   AuthenticatedPetsIdRoute: typeof AuthenticatedPetsIdRoute
+  AuthenticatedTreinoIdRoute: typeof AuthenticatedTreinoIdRoute
   AuthenticatedHabitosIndexRoute: typeof AuthenticatedHabitosIndexRoute
   AuthenticatedPetsIndexRoute: typeof AuthenticatedPetsIndexRoute
   AuthenticatedTreinoIndexRoute: typeof AuthenticatedTreinoIndexRoute
@@ -366,6 +386,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
   AuthenticatedPetsIdRoute: AuthenticatedPetsIdRoute,
+  AuthenticatedTreinoIdRoute: AuthenticatedTreinoIdRoute,
   AuthenticatedHabitosIndexRoute: AuthenticatedHabitosIndexRoute,
   AuthenticatedPetsIndexRoute: AuthenticatedPetsIndexRoute,
   AuthenticatedTreinoIndexRoute: AuthenticatedTreinoIndexRoute,
