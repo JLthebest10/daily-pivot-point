@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedFinancasRouteImport } from './routes/_authenticated/financas'
+import { Route as AuthenticatedHojeRouteImport } from './routes/_authenticated/hoje'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedHabitosIndexRouteImport } from './routes/_authenticated/habitos.index'
@@ -48,6 +49,11 @@ const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
 const AuthenticatedFinancasRoute = AuthenticatedFinancasRouteImport.update({
   id: '/financas',
   path: '/financas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHojeRoute = AuthenticatedHojeRouteImport.update({
+  id: '/hoje',
+  path: '/hoje',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/financas': typeof AuthenticatedFinancasRoute
+  '/hoje': typeof AuthenticatedHojeRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/financas': typeof AuthenticatedFinancasRoute
+  '/hoje': typeof AuthenticatedHojeRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/financas': typeof AuthenticatedFinancasRoute
+  '/_authenticated/hoje': typeof AuthenticatedHojeRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/calendario'
     | '/financas'
+    | '/hoje'
     | '/metas'
     | '/tarefas'
     | '/habitos/$id'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/calendario'
     | '/financas'
+    | '/hoje'
     | '/metas'
     | '/tarefas'
     | '/habitos/$id'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/_authenticated/calendario'
     | '/_authenticated/financas'
+    | '/_authenticated/hoje'
     | '/_authenticated/metas'
     | '/_authenticated/tarefas'
     | '/_authenticated/habitos/$id'
@@ -207,6 +219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinancasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/hoje': {
+      id: '/_authenticated/hoje'
+      path: '/hoje'
+      fullPath: '/hoje'
+      preLoaderRoute: typeof AuthenticatedHojeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/metas': {
       id: '/_authenticated/metas'
       path: '/metas'
@@ -248,6 +267,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedFinancasRoute: typeof AuthenticatedFinancasRoute
+  AuthenticatedHojeRoute: typeof AuthenticatedHojeRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
@@ -258,6 +278,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedFinancasRoute: AuthenticatedFinancasRoute,
+  AuthenticatedHojeRoute: AuthenticatedHojeRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
