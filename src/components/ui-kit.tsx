@@ -158,3 +158,72 @@ export function Field({ label, children }: { label: string; children: ReactNode 
     </label>
   );
 }
+
+export function CircularProgress({
+  value,
+  label,
+  hint,
+  size = 132,
+}: {
+  value: number;
+  label?: string;
+  hint?: string;
+  size?: number;
+}) {
+  const v = Math.min(100, Math.max(0, value));
+  const stroke = 10;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  return (
+    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth={stroke}
+          className="stroke-muted"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          className="stroke-primary transition-all duration-700"
+          strokeDasharray={c}
+          strokeDashoffset={c - (c * v) / 100}
+        />
+      </svg>
+      <div className="absolute flex flex-col items-center">
+        <span className="num text-2xl font-semibold tracking-tight">{Math.round(v)}%</span>
+        {label && <span className="text-[11px] text-muted-foreground">{label}</span>}
+        {hint && <span className="text-[11px] text-muted-foreground">{hint}</span>}
+      </div>
+    </div>
+  );
+}
+
+/** Faixa visual dos últimos dias: mostra se o hábito foi cumprido em cada dia. */
+export function DayTrack({
+  days,
+}: {
+  days: { date: string; done: boolean; scheduled: boolean; label: string }[];
+}) {
+  return (
+    <div className="flex gap-1">
+      {days.map((d) => (
+        <span
+          key={d.date}
+          title={`${d.label}${d.scheduled ? (d.done ? " · concluído" : " · não concluído") : " · fora da rotina"}`}
+          className={cn(
+            "h-5 flex-1 rounded-[4px]",
+            !d.scheduled ? "bg-muted/50" : d.done ? "bg-primary" : "bg-muted",
+          )}
+        />
+      ))}
+    </div>
+  );
+}
