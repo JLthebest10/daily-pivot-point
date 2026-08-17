@@ -1,5 +1,4 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   BarChart3,
   CalendarDays,
@@ -9,7 +8,6 @@ import {
   Flag,
   LayoutGrid,
   ListTodo,
-  LogOut,
   PawPrint,
   Search,
   Sun,
@@ -18,7 +16,6 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
@@ -53,17 +50,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: profile } = useProfile();
   const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
-  const qc = useQueryClient();
   const [searchOpen, setSearchOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-
-  async function signOut() {
-    await qc.cancelQueries();
-    qc.clear();
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  }
 
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
 
@@ -100,7 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
 
-        <div className="flex items-center justify-between px-1">
+        <div className="flex items-center px-1">
           <Button
             variant="ghost"
             size="icon"
@@ -108,9 +96,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
             {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          </Button>
-          <Button variant="ghost" size="icon" aria-label="Sair" onClick={signOut}>
-            <LogOut className="size-4" />
           </Button>
         </div>
       </aside>
@@ -171,13 +156,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                   {item.label}
                 </Link>
               ))}
-              <button
-                onClick={signOut}
-                className="surface flex flex-col items-center gap-2 px-2 py-4 text-xs text-destructive"
-              >
-                <LogOut className="size-5" />
-                Sair
-              </button>
             </div>
           </SheetContent>
         </Sheet>
