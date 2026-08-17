@@ -100,7 +100,7 @@ function TodayPage() {
                       toggle.mutate({
                         habitId: h.id,
                         date: today,
-                        completionId: completion?.id,
+                        ...(completion ? { completionId: completion.id } : {}),
                         value: h.target,
                       })
                     }
