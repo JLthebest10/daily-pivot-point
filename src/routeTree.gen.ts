@@ -14,10 +14,12 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
+import { Route as AuthenticatedFinancasRouteImport } from './routes/_authenticated/financas'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedHabitosIndexRouteImport } from './routes/_authenticated/habitos.index'
 import { Route as AuthenticatedHabitosIdRouteImport } from './routes/_authenticated/habitos.$id'
+import { Route as AuthenticatedTreinoIndexRouteImport } from './routes/_authenticated/treino.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -43,6 +45,11 @@ const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
   path: '/calendario',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFinancasRoute = AuthenticatedFinancasRouteImport.update({
+  id: '/financas',
+  path: '/financas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
   id: '/metas',
   path: '/metas',
@@ -64,26 +71,36 @@ const AuthenticatedHabitosIdRoute = AuthenticatedHabitosIdRouteImport.update({
   path: '/habitos/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTreinoIndexRoute =
+  AuthenticatedTreinoIndexRouteImport.update({
+    id: '/treino/',
+    path: '/treino/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
+  '/financas': typeof AuthenticatedFinancasRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
+  '/treino/': typeof AuthenticatedTreinoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
+  '/financas': typeof AuthenticatedFinancasRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
+  '/treino': typeof AuthenticatedTreinoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -92,10 +109,12 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
+  '/_authenticated/financas': typeof AuthenticatedFinancasRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
+  '/_authenticated/treino/': typeof AuthenticatedTreinoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -104,20 +123,24 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/calendario'
+    | '/financas'
     | '/metas'
     | '/tarefas'
     | '/habitos/$id'
     | '/habitos/'
+    | '/treino/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/redefinir-senha'
     | '/calendario'
+    | '/financas'
     | '/metas'
     | '/tarefas'
     | '/habitos/$id'
     | '/habitos'
+    | '/treino'
   id:
     | '__root__'
     | '/'
@@ -125,10 +148,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/_authenticated/calendario'
+    | '/_authenticated/financas'
     | '/_authenticated/metas'
     | '/_authenticated/tarefas'
     | '/_authenticated/habitos/$id'
     | '/_authenticated/habitos/'
+    | '/_authenticated/treino/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -175,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/financas': {
+      id: '/_authenticated/financas'
+      path: '/financas'
+      fullPath: '/financas'
+      preLoaderRoute: typeof AuthenticatedFinancasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/metas': {
       id: '/_authenticated/metas'
       path: '/metas'
@@ -203,23 +235,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHabitosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/treino/': {
+      id: '/_authenticated/treino/'
+      path: '/treino'
+      fullPath: '/treino/'
+      preLoaderRoute: typeof AuthenticatedTreinoIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
+  AuthenticatedFinancasRoute: typeof AuthenticatedFinancasRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
   AuthenticatedHabitosIndexRoute: typeof AuthenticatedHabitosIndexRoute
+  AuthenticatedTreinoIndexRoute: typeof AuthenticatedTreinoIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
+  AuthenticatedFinancasRoute: AuthenticatedFinancasRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
   AuthenticatedHabitosIndexRoute: AuthenticatedHabitosIndexRoute,
+  AuthenticatedTreinoIndexRoute: AuthenticatedTreinoIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
