@@ -23,6 +23,7 @@ import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedHabitosIndexRouteImport } from './routes/_authenticated/habitos.index'
 import { Route as AuthenticatedHabitosIdRouteImport } from './routes/_authenticated/habitos.$id'
 import { Route as AuthenticatedPetsIndexRouteImport } from './routes/_authenticated/pets.index'
+import { Route as AuthenticatedPetsIdRouteImport } from './routes/_authenticated/pets.$id'
 import { Route as AuthenticatedTreinoIndexRouteImport } from './routes/_authenticated/treino.index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -96,6 +97,11 @@ const AuthenticatedPetsIndexRoute = AuthenticatedPetsIndexRouteImport.update({
   path: '/pets/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPetsIdRoute = AuthenticatedPetsIdRouteImport.update({
+  id: '/pets/$id',
+  path: '/pets/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTreinoIndexRoute =
   AuthenticatedTreinoIndexRouteImport.update({
     id: '/treino/',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/metas': typeof AuthenticatedMetasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
+  '/pets/$id': typeof AuthenticatedPetsIdRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/pets/': typeof AuthenticatedPetsIndexRoute
   '/treino/': typeof AuthenticatedTreinoIndexRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/metas': typeof AuthenticatedMetasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
+  '/pets/$id': typeof AuthenticatedPetsIdRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
   '/pets': typeof AuthenticatedPetsIndexRoute
   '/treino': typeof AuthenticatedTreinoIndexRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
+  '/_authenticated/pets/$id': typeof AuthenticatedPetsIdRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/_authenticated/pets/': typeof AuthenticatedPetsIndexRoute
   '/_authenticated/treino/': typeof AuthenticatedTreinoIndexRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/metas'
     | '/tarefas'
     | '/habitos/$id'
+    | '/pets/$id'
     | '/habitos/'
     | '/pets/'
     | '/treino/'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/metas'
     | '/tarefas'
     | '/habitos/$id'
+    | '/pets/$id'
     | '/habitos'
     | '/pets'
     | '/treino'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/_authenticated/metas'
     | '/_authenticated/tarefas'
     | '/_authenticated/habitos/$id'
+    | '/_authenticated/pets/$id'
     | '/_authenticated/habitos/'
     | '/_authenticated/pets/'
     | '/_authenticated/treino/'
@@ -312,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPetsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pets/$id': {
+      id: '/_authenticated/pets/$id'
+      path: '/pets/$id'
+      fullPath: '/pets/$id'
+      preLoaderRoute: typeof AuthenticatedPetsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/treino/': {
       id: '/_authenticated/treino/'
       path: '/treino'
@@ -331,6 +350,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
+  AuthenticatedPetsIdRoute: typeof AuthenticatedPetsIdRoute
   AuthenticatedHabitosIndexRoute: typeof AuthenticatedHabitosIndexRoute
   AuthenticatedPetsIndexRoute: typeof AuthenticatedPetsIndexRoute
   AuthenticatedTreinoIndexRoute: typeof AuthenticatedTreinoIndexRoute
@@ -345,6 +365,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
+  AuthenticatedPetsIdRoute: AuthenticatedPetsIdRoute,
   AuthenticatedHabitosIndexRoute: AuthenticatedHabitosIndexRoute,
   AuthenticatedPetsIndexRoute: AuthenticatedPetsIndexRoute,
   AuthenticatedTreinoIndexRoute: AuthenticatedTreinoIndexRoute,
