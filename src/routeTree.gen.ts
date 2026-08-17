@@ -14,10 +14,18 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
+import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
+import { Route as AuthenticatedFinancasRouteImport } from './routes/_authenticated/financas'
+import { Route as AuthenticatedHojeRouteImport } from './routes/_authenticated/hoje'
+import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedHabitosIndexRouteImport } from './routes/_authenticated/habitos.index'
 import { Route as AuthenticatedHabitosIdRouteImport } from './routes/_authenticated/habitos.$id'
+import { Route as AuthenticatedPetsIndexRouteImport } from './routes/_authenticated/pets.index'
+import { Route as AuthenticatedPetsIdRouteImport } from './routes/_authenticated/pets.$id'
+import { Route as AuthenticatedTreinoIndexRouteImport } from './routes/_authenticated/treino.index'
+import { Route as AuthenticatedTreinoIdRouteImport } from './routes/_authenticated/treino.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -43,6 +51,27 @@ const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
   path: '/calendario',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConfiguracoesRoute =
+  AuthenticatedConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFinancasRoute = AuthenticatedFinancasRouteImport.update({
+  id: '/financas',
+  path: '/financas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHojeRoute = AuthenticatedHojeRouteImport.update({
+  id: '/hoje',
+  path: '/hoje',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInsightsRoute = AuthenticatedInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
   id: '/metas',
   path: '/metas',
@@ -64,26 +93,63 @@ const AuthenticatedHabitosIdRoute = AuthenticatedHabitosIdRouteImport.update({
   path: '/habitos/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPetsIndexRoute = AuthenticatedPetsIndexRouteImport.update({
+  id: '/pets/',
+  path: '/pets/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPetsIdRoute = AuthenticatedPetsIdRouteImport.update({
+  id: '/pets/$id',
+  path: '/pets/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTreinoIndexRoute =
+  AuthenticatedTreinoIndexRouteImport.update({
+    id: '/treino/',
+    path: '/treino/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTreinoIdRoute = AuthenticatedTreinoIdRouteImport.update({
+  id: '/treino/$id',
+  path: '/treino/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/financas': typeof AuthenticatedFinancasRoute
+  '/hoje': typeof AuthenticatedHojeRoute
+  '/insights': typeof AuthenticatedInsightsRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
+  '/pets/$id': typeof AuthenticatedPetsIdRoute
+  '/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
+  '/pets/': typeof AuthenticatedPetsIndexRoute
+  '/treino/': typeof AuthenticatedTreinoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/financas': typeof AuthenticatedFinancasRoute
+  '/hoje': typeof AuthenticatedHojeRoute
+  '/insights': typeof AuthenticatedInsightsRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
+  '/pets/$id': typeof AuthenticatedPetsIdRoute
+  '/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
+  '/pets': typeof AuthenticatedPetsIndexRoute
+  '/treino': typeof AuthenticatedTreinoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -92,10 +158,18 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
+  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/_authenticated/financas': typeof AuthenticatedFinancasRoute
+  '/_authenticated/hoje': typeof AuthenticatedHojeRoute
+  '/_authenticated/insights': typeof AuthenticatedInsightsRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
+  '/_authenticated/pets/$id': typeof AuthenticatedPetsIdRoute
+  '/_authenticated/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
+  '/_authenticated/pets/': typeof AuthenticatedPetsIndexRoute
+  '/_authenticated/treino/': typeof AuthenticatedTreinoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -104,20 +178,36 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/calendario'
+    | '/configuracoes'
+    | '/financas'
+    | '/hoje'
+    | '/insights'
     | '/metas'
     | '/tarefas'
     | '/habitos/$id'
+    | '/pets/$id'
+    | '/treino/$id'
     | '/habitos/'
+    | '/pets/'
+    | '/treino/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/redefinir-senha'
     | '/calendario'
+    | '/configuracoes'
+    | '/financas'
+    | '/hoje'
+    | '/insights'
     | '/metas'
     | '/tarefas'
     | '/habitos/$id'
+    | '/pets/$id'
+    | '/treino/$id'
     | '/habitos'
+    | '/pets'
+    | '/treino'
   id:
     | '__root__'
     | '/'
@@ -125,10 +215,18 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/_authenticated/calendario'
+    | '/_authenticated/configuracoes'
+    | '/_authenticated/financas'
+    | '/_authenticated/hoje'
+    | '/_authenticated/insights'
     | '/_authenticated/metas'
     | '/_authenticated/tarefas'
     | '/_authenticated/habitos/$id'
+    | '/_authenticated/pets/$id'
+    | '/_authenticated/treino/$id'
     | '/_authenticated/habitos/'
+    | '/_authenticated/pets/'
+    | '/_authenticated/treino/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -175,6 +273,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/configuracoes': {
+      id: '/_authenticated/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/financas': {
+      id: '/_authenticated/financas'
+      path: '/financas'
+      fullPath: '/financas'
+      preLoaderRoute: typeof AuthenticatedFinancasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/hoje': {
+      id: '/_authenticated/hoje'
+      path: '/hoje'
+      fullPath: '/hoje'
+      preLoaderRoute: typeof AuthenticatedHojeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/insights': {
+      id: '/_authenticated/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof AuthenticatedInsightsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/metas': {
       id: '/_authenticated/metas'
       path: '/metas'
@@ -203,23 +329,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHabitosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pets/': {
+      id: '/_authenticated/pets/'
+      path: '/pets'
+      fullPath: '/pets/'
+      preLoaderRoute: typeof AuthenticatedPetsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pets/$id': {
+      id: '/_authenticated/pets/$id'
+      path: '/pets/$id'
+      fullPath: '/pets/$id'
+      preLoaderRoute: typeof AuthenticatedPetsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/treino/': {
+      id: '/_authenticated/treino/'
+      path: '/treino'
+      fullPath: '/treino/'
+      preLoaderRoute: typeof AuthenticatedTreinoIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/treino/$id': {
+      id: '/_authenticated/treino/$id'
+      path: '/treino/$id'
+      fullPath: '/treino/$id'
+      preLoaderRoute: typeof AuthenticatedTreinoIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
+  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
+  AuthenticatedFinancasRoute: typeof AuthenticatedFinancasRoute
+  AuthenticatedHojeRoute: typeof AuthenticatedHojeRoute
+  AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
+  AuthenticatedPetsIdRoute: typeof AuthenticatedPetsIdRoute
+  AuthenticatedTreinoIdRoute: typeof AuthenticatedTreinoIdRoute
   AuthenticatedHabitosIndexRoute: typeof AuthenticatedHabitosIndexRoute
+  AuthenticatedPetsIndexRoute: typeof AuthenticatedPetsIndexRoute
+  AuthenticatedTreinoIndexRoute: typeof AuthenticatedTreinoIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
+  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
+  AuthenticatedFinancasRoute: AuthenticatedFinancasRoute,
+  AuthenticatedHojeRoute: AuthenticatedHojeRoute,
+  AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
+  AuthenticatedPetsIdRoute: AuthenticatedPetsIdRoute,
+  AuthenticatedTreinoIdRoute: AuthenticatedTreinoIdRoute,
   AuthenticatedHabitosIndexRoute: AuthenticatedHabitosIndexRoute,
+  AuthenticatedPetsIndexRoute: AuthenticatedPetsIndexRoute,
+  AuthenticatedTreinoIndexRoute: AuthenticatedTreinoIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -17,7 +17,7 @@ export function PageHeader({
   action,
 }: {
   title: string;
-  subtitle?: string;
+  subtitle?: string | undefined;
   action?: ReactNode;
 }) {
   return (
@@ -87,17 +87,27 @@ export function StatCard({
   label,
   value,
   hint,
+  tone,
   className,
 }: {
   label: string;
   value: string;
-  hint?: string;
+  hint?: string | undefined;
+  tone?: "positive" | "negative" | string | undefined;
   className?: string;
 }) {
   return (
     <div className={cn("surface px-4 py-3.5", className)}>
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="num mt-1 text-xl font-semibold tracking-tight">{value}</p>
+      <p
+        className={cn(
+          "num mt-1 text-xl font-semibold tracking-tight",
+          tone === "positive" && "text-primary",
+          tone === "negative" && "text-destructive",
+        )}
+      >
+        {value}
+      </p>
       {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
