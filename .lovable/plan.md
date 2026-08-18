@@ -5,11 +5,11 @@
 Nova ordem da página (de cima para baixo):
 
 1. **Cabeçalho** (saudação + data) — como hoje.
-2. **Compromissos e tarefas do dia** — sobe para o topo, logo abaixo do cabeçalho, em um bloco único "Seu dia" (eventos de hoje com horário + tarefas de hoje com check).
-3. **Anel de produtividade de hoje** — agora clicável, leva para o histórico.
-4. **Hábitos de hoje** — como hoje.
-5. **Mini calendário (3 fileiras)** — substitui o resumo financeiro. Mostra 3 semanas a partir da semana atual, com pontinhos nos dias que têm evento/tarefa e uma lista curta dos próximos compromissos. Clique em um dia abre `/calendario`.
-6. **Mecanismo financeiro rápido** (rodapé da página) — caixa "Entrou / Saiu": campo de valor, categoria opcional, botões `+ Entrada` e `− Saída`. Salva direto na tabela de transações com a data de hoje, então aparece imediatamente em Finanças. Mostra abaixo o saldo do mês em uma linha.
+2. **Anel de produtividade de hoje** — primeiro bloco, logo abaixo do cabeçalho, agora clicável e levando para o histórico.
+3. **Compromissos e tarefas do dia** — bloco único "Seu dia" (eventos de hoje com horário + tarefas de hoje com check).
+4. **Mini calendário (3 fileiras)** — substitui o resumo financeiro. Mostra 3 semanas a partir da semana atual, com pontinhos nos dias que têm evento/tarefa e uma lista curta dos próximos compromissos. Clique em um dia abre `/calendario`.
+5. **Mecanismo financeiro rápido** — caixa "Entrou / Saiu": campo de valor, categoria opcional, botões `+ Entrada` e `− Saída`. Salva direto na tabela de transações com a data de hoje, então aparece imediatamente em Finanças. Mostra abaixo o saldo do mês em uma linha.
+6. **Hábitos de hoje** — último bloco da página.
 
 ## Histórico de produtividade
 
