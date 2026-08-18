@@ -63,6 +63,16 @@ const REMINDERS = [
   { value: "1440", label: "1 dia antes" },
 ];
 
+type TaskRow = {
+  id: string;
+  title: string;
+  due_date: string | null;
+  due_time: string | null;
+  priority: string;
+  category: string;
+  done: boolean;
+};
+
 type View = "month" | "week" | "day";
 
 function CalendarPage() {
@@ -71,6 +81,7 @@ function CalendarPage() {
   const [selected, setSelected] = useState(toISODate());
   const [open, setOpen] = useState(false);
   const events = useList<EventRow>("events", { order: { column: "date" } });
+  const tasks = useList<TaskRow>("tasks", { order: { column: "due_date" } });
   const save = useSave("events", "Compromisso salvo");
   const remove = useRemove("events", "Compromisso excluído");
 
@@ -90,6 +101,11 @@ function CalendarPage() {
     (events.data ?? [])
       .filter((e) => e.date === iso)
       .sort((a, b) => (a.start_time ?? "").localeCompare(b.start_time ?? ""));
+
+  const tasksByDate = (iso: string) =>
+    (tasks.data ?? [])
+      .filter((t) => t.due_date === iso)
+      .sort((a, b) => (a.due_time ?? "").localeCompare(b.due_time ?? ""));
 
   const monthStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const gridStart = startOfWeek(monthStart);
@@ -213,7 +229,12 @@ function CalendarPage() {
                   )}
                 >
                   <span className="num">{d.getDate()}</span>
-                  {items.length > 0 && <span className="mt-1 size-1.5 rounded-full bg-primary" />}
+                  <span className="mt-1 flex gap-0.5">
+                    {items.length > 0 && <span className="size-1.5 rounded-full bg-primary" />}
+                    {tasksByDate(iso).length > 0 && (
+                      <span className="size-1.5 rounded-full bg-foreground/40" />
+                    )}
+                  </span>
                 </button>
               );
             })}
@@ -226,6 +247,7 @@ function CalendarPage() {
               key={toISODate(d)}
               date={d}
               items={byDate(toISODate(d))}
+              tasks={tasksByDate(toISODate(d))}
               onRemove={(id) => remove.mutate(id)}
             />
           ))}
@@ -234,6 +256,7 @@ function CalendarPage() {
         <DayBlock
           date={fromISODate(selected)}
           items={byDate(selected)}
+          tasks={tasksByDate(selected)}
           onRemove={(id) => remove.mutate(id)}
         />
       )}
@@ -345,18 +368,20 @@ function CalendarPage() {
 function DayBlock({
   date,
   items,
+  tasks,
   onRemove,
 }: {
   date: Date;
   items: EventRow[];
+  tasks: TaskRow[];
   onRemove: (id: string) => void;
 }) {
   return (
     <div className="surface p-4">
       <h2 className="text-sm font-medium capitalize">{longDate(date)}</h2>
-      {items.length === 0 ? (
+      {items.length === 0 && tasks.length === 0 ? (
         <p className="mt-2 text-sm text-muted-foreground">Nada agendado.</p>
-      ) : (
+      ) : items.length === 0 ? null : (
         <ul className="mt-3 space-y-2">
           {items.map((e) => (
             <li key={e.id} className="flex items-start gap-3 border-l-2 border-primary pl-3">
@@ -376,6 +401,27 @@ function DayBlock({
               <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => onRemove(e.id)}>
                 <Trash2 className="size-4 text-muted-foreground" />
               </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {tasks.length > 0 && (
+        <ul className="mt-3 space-y-2">
+          {tasks.map((t) => (
+            <li key={t.id} className="flex items-start gap-3 border-l-2 border-muted-foreground/40 pl-3">
+              <div className="min-w-0 flex-1">
+                <p
+                  className={cn(
+                    "num text-sm font-medium",
+                    t.done && "text-muted-foreground line-through",
+                  )}
+                >
+                  {t.due_time ?? "--:--"} — {t.title}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Tarefa · {t.category} · prioridade {t.priority}
+                </p>
+              </div>
             </li>
           ))}
         </ul>
