@@ -8,7 +8,14 @@ import { addDays, toISODate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { HabitForm } from "@/components/habits/HabitForm";
 import { HabitCheck, useToggleCompletion } from "@/components/habits/HabitCheck";
-import { EmptyState, ErrorNote, LoadingList, PageHeader, Bar } from "@/components/ui-kit";
+import {
+  EmptyState,
+  ErrorNote,
+  LoadingList,
+  PageHeader,
+  Bar,
+  DayTrack,
+} from "@/components/ui-kit";
 
 export const Route = createFileRoute("/_authenticated/habitos/")({
   head: () => ({
@@ -34,6 +41,11 @@ function HabitsPage() {
   const [editing, setEditing] = useState<Habit | null>(null);
 
   const list = (habits.data ?? []).filter((h) => !h.archived);
+  const todayList = list.filter((h) => isScheduled(h, new Date()));
+  const doneToday = (completions.data ?? []).filter((c) => c.date === today);
+  const doneCount = doneToday.filter((c) => todayList.some((h) => h.id === c.habit_id)).length;
+  const dayRate = todayList.length ? (doneCount / todayList.length) * 100 : 0;
+  const last14 = Array.from({ length: 14 }, (_, i) => addDays(new Date(), i - 13));
 
   return (
     <>
@@ -53,6 +65,20 @@ function HabitsPage() {
       />
 
       <ErrorNote error={habits.error} />
+      {todayList.length > 0 && (
+        <section className="surface mb-6 px-4 py-4">
+          <div className="mb-2 flex items-baseline justify-between">
+            <p className="text-sm font-medium">Progresso de hoje</p>
+            <span className="num text-sm text-muted-foreground">
+              {doneCount}/{todayList.length} · {Math.round(dayRate)}%
+            </span>
+          </div>
+          <Bar value={dayRate} />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Os hábitos reiniciam automaticamente todo dia.
+          </p>
+        </section>
+      )}
       {habits.isLoading ? (
         <LoadingList />
       ) : list.length === 0 ? (
@@ -98,6 +124,20 @@ function HabitsPage() {
                     <span className="num shrink-0 text-xs text-muted-foreground">
                       {Math.round(stats.rate)}%
                     </span>
+                  </div>
+                  <div className="mt-2">
+                    <DayTrack
+                      days={last14.map((d) => {
+                        const iso = toISODate(d);
+                        return {
+                          date: iso,
+                          done: hc.some((c) => c.date === iso),
+                          scheduled: isScheduled(habit, d),
+                          label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+                        };
+                      })}
+                    />
+                    <p className="mt-1 text-[11px] text-muted-foreground">últimos 14 dias</p>
                   </div>
                 </Link>
                 <Button
