@@ -62,7 +62,6 @@ export type Transaction = {
   amount: number;
   category: string;
   date: string;
-  recurring: boolean;
 };
 export type Purchase = {
   id: string;
@@ -109,7 +108,6 @@ function FinancePage() {
     amount: 0,
     category: "Alimentação",
     date: toISODate(),
-    recurring: false,
   });
   const [pForm, setPForm] = useState({ name: "", price: 0, priority: "media", saved: 0 });
   const [sForm, setSForm] = useState({ name: "", target: 0, current: 0 });
@@ -267,7 +265,6 @@ function FinancePage() {
                   <p className="truncate text-sm">{r.description}</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(r.date).toLocaleDateString("pt-BR")} · {r.category}
-                    {r.recurring ? " · recorrente" : ""}
                   </p>
                 </div>
                 <span
@@ -411,7 +408,6 @@ function FinancePage() {
               amount: Number(txForm.amount),
               category: txForm.category,
               date: txForm.date,
-              recurring: txForm.recurring,
             });
             setTxForm({ ...txForm, description: "", amount: 0 });
             setOpenTx(false);
@@ -480,15 +476,6 @@ function FinancePage() {
               </SelectContent>
             </Select>
           </Field>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={txForm.recurring}
-              onChange={(e) => setTxForm({ ...txForm, recurring: e.target.checked })}
-              className="size-4 accent-[var(--color-primary)]"
-            />
-            Lançamento recorrente
-          </label>
           <Button type="submit" className="w-full" disabled={saveTx.isPending}>
             Salvar
           </Button>
