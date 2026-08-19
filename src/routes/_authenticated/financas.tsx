@@ -57,7 +57,7 @@ export const Route = createFileRoute("/_authenticated/financas")({
 
 export type Transaction = {
   id: string;
-  kind: string;
+  type: string;
   description: string;
   amount: number;
   category: string;
@@ -104,7 +104,7 @@ function FinancePage() {
   const [openSaving, setOpenSaving] = useState(false);
 
   const [txForm, setTxForm] = useState({
-    kind: "expense",
+    type: "expense",
     description: "",
     amount: 0,
     category: "Alimentação",
@@ -120,15 +120,15 @@ function FinancePage() {
     const d = new Date(r.date);
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
-  const income = monthRows.filter((r) => r.kind === "income").reduce((a, r) => a + Number(r.amount), 0);
+  const income = monthRows.filter((r) => r.type === "income").reduce((a, r) => a + Number(r.amount), 0);
   const expense = monthRows
-    .filter((r) => r.kind === "expense")
+    .filter((r) => r.type === "expense")
     .reduce((a, r) => a + Number(r.amount), 0);
   const balance = income - expense;
 
   const byCategory = Object.entries(
     monthRows
-      .filter((r) => r.kind === "expense")
+      .filter((r) => r.type === "expense")
       .reduce<Record<string, number>>((acc, r) => {
         acc[r.category] = (acc[r.category] ?? 0) + Number(r.amount);
         return acc;
@@ -143,8 +143,8 @@ function FinancePage() {
     });
     return {
       mes: MONTHS[d.getMonth()]!.slice(0, 3),
-      receitas: inMonth.filter((r) => r.kind === "income").reduce((a, r) => a + Number(r.amount), 0),
-      despesas: inMonth.filter((r) => r.kind === "expense").reduce((a, r) => a + Number(r.amount), 0),
+      receitas: inMonth.filter((r) => r.type === "income").reduce((a, r) => a + Number(r.amount), 0),
+      despesas: inMonth.filter((r) => r.type === "expense").reduce((a, r) => a + Number(r.amount), 0),
     };
   });
 
@@ -273,10 +273,10 @@ function FinancePage() {
                 <span
                   className={cn(
                     "num text-sm font-medium",
-                    r.kind === "income" ? "text-[var(--color-positive)]" : "text-destructive",
+                    r.type === "income" ? "text-[var(--color-positive)]" : "text-destructive",
                   )}
                 >
-                  {r.kind === "income" ? "+" : "−"}
+                  {r.type === "income" ? "+" : "−"}
                   {money(Number(r.amount))}
                 </span>
                 <Button
@@ -406,7 +406,7 @@ function FinancePage() {
           onSubmit={async (e) => {
             e.preventDefault();
             await saveTx.mutateAsync({
-              kind: txForm.kind,
+              type: txForm.type,
               description: txForm.description.trim(),
               amount: Number(txForm.amount),
               category: txForm.category,
@@ -419,11 +419,11 @@ function FinancePage() {
         >
           <Field label="Tipo">
             <Select
-              value={txForm.kind}
+              value={txForm.type}
               onValueChange={(v) =>
                 setTxForm({
                   ...txForm,
-                  kind: v,
+                  type: v,
                   category: v === "income" ? "Salário" : "Alimentação",
                 })
               }
@@ -472,7 +472,7 @@ function FinancePage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(txForm.kind === "income" ? INCOME_CATS : EXPENSE_CATS).map((c) => (
+                {(txForm.type === "income" ? INCOME_CATS : EXPENSE_CATS).map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
                   </SelectItem>
