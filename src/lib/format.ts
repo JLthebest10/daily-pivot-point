@@ -103,3 +103,21 @@ export function humanDelta(mins: number) {
   if (h < 24) return `em ${h}h`;
   return `em ${Math.floor(h / 24)}d`;
 }
+
+/** Dias inteiros entre hoje e uma data ISO (positivo = futuro). */
+export function daysUntil(iso: string) {
+  const a = new Date();
+  a.setHours(0, 0, 0, 0);
+  const b = fromISODate(iso);
+  b.setHours(0, 0, 0, 0);
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
+export function relativeDays(iso: string) {
+  const d = daysUntil(iso);
+  if (d === 0) return "Hoje";
+  if (d === 1) return "Amanhã";
+  if (d === -1) return "Ontem";
+  if (d > 1) return `Daqui ${d} dias`;
+  return `Há ${Math.abs(d)} dias`;
+}
