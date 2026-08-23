@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      body_photos: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          note: string | null
+          path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          path?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           category: string
@@ -23,6 +50,7 @@ export type Database = {
           description: string | null
           duration_min: number
           id: string
+          importance: string
           location: string | null
           reminder_min: number | null
           repeat: string
@@ -39,6 +67,7 @@ export type Database = {
           description?: string | null
           duration_min?: number
           id?: string
+          importance?: string
           location?: string | null
           reminder_min?: number | null
           repeat?: string
@@ -55,6 +84,7 @@ export type Database = {
           description?: string | null
           duration_min?: number
           id?: string
+          importance?: string
           location?: string | null
           reminder_min?: number | null
           repeat?: string
@@ -289,6 +319,77 @@ export type Database = {
           target?: number
           time?: string | null
           unit?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meal_logs: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          meal_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          meal_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          meal_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_logs_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meals: {
+        Row: {
+          archived: boolean
+          created_at: string
+          days: number[]
+          id: string
+          kcal: number | null
+          name: string
+          note: string | null
+          time: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived?: boolean
+          created_at?: string
+          days?: number[]
+          id?: string
+          kcal?: number | null
+          name: string
+          note?: string | null
+          time?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archived?: boolean
+          created_at?: string
+          days?: number[]
+          id?: string
+          kcal?: number | null
+          name?: string
+          note?: string | null
+          time?: string | null
           updated_at?: string
           user_id?: string
         }
