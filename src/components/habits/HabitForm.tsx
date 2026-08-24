@@ -103,7 +103,18 @@ export function HabitForm({
         </Field>
 
         <Field label="Ícone">
-          <div className="flex flex-wrap gap-1.5">
+          <Input
+            value={form.icon}
+            onChange={(e) => {
+              // Pega apenas o primeiro emoji/grapheme do campo
+              const value = Array.from(e.target.value.trim())[0] ?? "";
+              setForm({ ...form, icon: value || "⭐" });
+            }}
+            placeholder="Digite ou cole um emoji"
+            className="text-lg"
+            maxLength={4}
+          />
+          <div className="flex flex-wrap gap-1.5 pt-1">
             {HABIT_ICONS.map((i) => (
               <button
                 key={i}
