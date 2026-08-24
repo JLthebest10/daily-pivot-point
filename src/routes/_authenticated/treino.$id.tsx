@@ -1,13 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Check, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Play, Plus, Trash2 } from "lucide-react";
 import { useList, useRemove, useSave, currentUserId, db } from "@/lib/db";
 import { toISODate } from "@/lib/format";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Field, FormModal, LoadingList, PageHeader, SectionTitle } from "@/components/ui-kit";
+import { HabitCheck } from "@/components/habits/HabitCheck";
+import {
+  Bar,
+  Field,
+  FormModal,
+  LoadingList,
+  PageHeader,
+  SectionTitle,
+} from "@/components/ui-kit";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/treino/$id")({
   head: () => ({
@@ -16,6 +25,8 @@ export const Route = createFileRoute("/_authenticated/treino/$id")({
       { name: "description", content: "Registre séries, cargas e repetições do seu treino." },
       { property: "og:title", content: "Treino — Life Hub" },
       { property: "og:description", content: "Execute e registre seu treino no Life Hub." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: WorkoutDetail,
@@ -39,6 +50,7 @@ type SetRow = {
   reps: number;
   date: string;
 };
+type HabitRow = { id: string; name: string; category: string; archived: boolean; target: number };
 
 function WorkoutDetail() {
   const { id } = Route.useParams();
@@ -51,6 +63,7 @@ function WorkoutDetail() {
     order: { column: "order_index" },
   });
   const sets = useList<SetRow>("exercise_sets", { eq: { date: today } });
+  const habits = useList<HabitRow>("habits", { eq: { archived: false } });
   const saveExercise = useSave("exercises", "Exercício adicionado");
   const removeExercise = useRemove("exercises", "Exercício removido");
   const saveSet = useSave("exercise_sets");
@@ -60,22 +73,65 @@ function WorkoutDetail() {
   const [form, setForm] = useState({ name: "", target_sets: "3", target_reps: "10", rest_sec: "60" });
   const [entry, setEntry] = useState<Record<string, { weight: string; reps: string }>>({});
   const [finishing, setFinishing] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   const workout = (workouts.data ?? [])[0];
-  const todaySets = (sets.data ?? []).filter((s) =>
-    (exercises.data ?? []).some((e) => e.id === s.exercise_id),
-  );
+  const list = exercises.data ?? [];
+  const todaySets = (sets.data ?? []).filter((s) => list.some((e) => e.id === s.exercise_id));
+  const doneCount = list.filter((e) => checked[e.id]).length;
+  const progress = list.length ? (doneCount / list.length) * 100 : 0;
+
+  function start() {
+    setStarted(true);
+    setStartedAt(Date.now());
+    setChecked({});
+    toast.success("Treino iniciado. Bom treino!");
+  }
+
+  /** Marca o hábito de treino do dia como concluído, se existir. */
+  async function markWorkoutHabit(user_id: string) {
+    const candidates = (habits.data ?? []).filter(
+      (h) =>
+        h.category?.toLowerCase() === "treino" ||
+        /trein|academ|muscul|exerc/i.test(h.name ?? ""),
+    );
+    for (const h of candidates) {
+      const { data: existing } = await db
+        .from("habit_completions")
+        .select("id")
+        .eq("habit_id", h.id)
+        .eq("date", today)
+        .maybeSingle();
+      if (existing) continue;
+      await db
+        .from("habit_completions")
+        .insert({ habit_id: h.id, date: today, value: h.target ?? 1, user_id });
+    }
+    return candidates.length;
+  }
 
   async function finish() {
     setFinishing(true);
     try {
       const user_id = await currentUserId();
-      const { error } = await db
-        .from("workout_sessions")
-        .insert({ user_id, workout_id: id, date: today });
+      const duration = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 60000)) : null;
+      const { error } = await db.from("workout_sessions").insert({
+        user_id,
+        workout_id: id,
+        date: today,
+        ...(duration ? { duration_min: duration } : {}),
+      });
       if (error) throw error;
+      const marked = await markWorkoutHabit(user_id);
       qc.invalidateQueries();
-      toast.success("Treino concluído!");
+      setStarted(false);
+      setStartedAt(null);
+      setChecked({});
+      toast.success(
+        marked > 0 ? "Treino salvo e hábito de treino marcado!" : "Treino salvo como realizado!",
+      );
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -97,11 +153,32 @@ function WorkoutDetail() {
         title={workout?.name ?? "Treino"}
         subtitle={workout?.focus || workout?.note || undefined}
         action={
-          <Button onClick={finish} disabled={finishing}>
-            <Check className="size-4" /> Concluir
-          </Button>
+          started ? (
+            <Button onClick={finish} disabled={finishing}>
+              <Check className="size-4" /> Finalizar treino
+            </Button>
+          ) : (
+            <Button onClick={start}>
+              <Play className="size-4" /> Iniciar treino
+            </Button>
+          )
         }
       />
+
+      {started && (
+        <section className="surface mb-6 px-4 py-4">
+          <div className="mb-2 flex items-baseline justify-between">
+            <p className="text-sm font-medium">Treino em andamento</p>
+            <span className="num text-sm text-muted-foreground">
+              {doneCount}/{list.length} · {Math.round(progress)}%
+            </span>
+          </div>
+          <Bar value={progress} />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Marque cada exercício ao terminar e clique em “Finalizar treino”.
+          </p>
+        </section>
+      )}
 
       <SectionTitle
         action={
@@ -113,22 +190,37 @@ function WorkoutDetail() {
         Exercícios · {todaySets.length} séries hoje
       </SectionTitle>
 
-      {(exercises.data ?? []).length === 0 ? (
+      {list.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           Adicione exercícios para registrar suas séries.
         </p>
       ) : (
         <ul className="space-y-3">
-          {(exercises.data ?? []).map((ex) => {
+          {list.map((ex) => {
             const exSets = todaySets
               .filter((s) => s.exercise_id === ex.id)
               .sort((a, b) => a.set_number - b.set_number);
             const value = entry[ex.id] ?? { weight: "", reps: String(ex.target_reps) };
+            const isDone = !!checked[ex.id];
             return (
               <li key={ex.id} className="surface px-4 py-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                  {started && (
+                    <HabitCheck
+                      checked={isDone}
+                      label={ex.name}
+                      onToggle={() => setChecked({ ...checked, [ex.id]: !isDone })}
+                    />
+                  )}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{ex.name}</p>
+                    <p
+                      className={cn(
+                        "truncate text-sm font-medium",
+                        isDone && "text-muted-foreground line-through",
+                      )}
+                    >
+                      {ex.name}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {ex.target_sets}×{ex.target_reps} · descanso {ex.rest_sec}s
                     </p>
@@ -165,7 +257,7 @@ function WorkoutDetail() {
                 )}
 
                 <form
-                  className="mt-3 flex items-center gap-2"
+                  className="mt-3 flex items-end gap-2"
                   onSubmit={async (e) => {
                     e.preventDefault();
                     await saveSet.mutateAsync({
@@ -178,24 +270,34 @@ function WorkoutDetail() {
                     setEntry({ ...entry, [ex.id]: { weight: value.weight, reps: value.reps } });
                   }}
                 >
-                  <Input
-                    type="number"
-                    step="0.5"
-                    min={0}
-                    placeholder="kg"
-                    value={value.weight}
-                    onChange={(e) => setEntry({ ...entry, [ex.id]: { ...value, weight: e.target.value } })}
-                    className="h-9"
-                  />
-                  <Input
-                    type="number"
-                    min={0}
-                    placeholder="reps"
-                    value={value.reps}
-                    onChange={(e) => setEntry({ ...entry, [ex.id]: { ...value, reps: e.target.value } })}
-                    className="h-9"
-                  />
-                  <Button type="submit" size="sm" variant="secondary">
+                  <label className="flex-1 space-y-1">
+                    <span className="text-[11px] font-medium text-muted-foreground">Kg</span>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      min={0}
+                      aria-label="Peso em quilos"
+                      value={value.weight}
+                      onChange={(e) =>
+                        setEntry({ ...entry, [ex.id]: { ...value, weight: e.target.value } })
+                      }
+                      className="h-9"
+                    />
+                  </label>
+                  <label className="flex-1 space-y-1">
+                    <span className="text-[11px] font-medium text-muted-foreground">Reps</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      aria-label="Repetições"
+                      value={value.reps}
+                      onChange={(e) =>
+                        setEntry({ ...entry, [ex.id]: { ...value, reps: e.target.value } })
+                      }
+                      className="h-9"
+                    />
+                  </label>
+                  <Button type="submit" size="sm" variant="secondary" className="h-9">
                     <Plus className="size-4" />
                   </Button>
                 </form>
@@ -203,6 +305,12 @@ function WorkoutDetail() {
             );
           })}
         </ul>
+      )}
+
+      {started && list.length > 0 && (
+        <Button className="mt-6 w-full" size="lg" onClick={finish} disabled={finishing}>
+          <Check className="size-4" /> Finalizar treino
+        </Button>
       )}
 
       <FormModal open={open} onOpenChange={setOpen} title="Novo exercício">
@@ -216,7 +324,7 @@ function WorkoutDetail() {
               target_sets: Number(form.target_sets) || 3,
               target_reps: Number(form.target_reps) || 10,
               rest_sec: Number(form.rest_sec) || 60,
-              order_index: (exercises.data ?? []).length,
+              order_index: list.length,
             });
             setForm({ name: "", target_sets: "3", target_reps: "10", rest_sec: "60" });
             setOpen(false);
@@ -255,8 +363,8 @@ function WorkoutDetail() {
               />
             </Field>
           </div>
-          <Button type="submit" className="w-full">
-            Adicionar
+          <Button type="submit" className="w-full" disabled={saveExercise.isPending}>
+            Adicionar exercício
           </Button>
         </form>
       </FormModal>
