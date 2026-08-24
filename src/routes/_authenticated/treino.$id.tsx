@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Check, Play, Plus, Trash2 } from "lucide-react";
 import { useList, useRemove, useSave, currentUserId, db } from "@/lib/db";
-import { toISODate } from "@/lib/format";
+import { shortDate, toISODate } from "@/lib/format";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
