@@ -95,12 +95,51 @@ function WorkoutDetail() {
     }
   }
 
+  /**
+   * Salva o que foi digitado (kg/reps) mesmo sem clicar em "+":
+   * atualiza a última série do dia ou cria a primeira.
+   */
+  async function persistEntry(exId: string, value: { weight: string; reps: string }) {
+    const weight = Number(value.weight);
+    const reps = Number(value.reps);
+    if (!value.weight && !value.reps) return;
+    if (!Number.isFinite(weight) || !Number.isFinite(reps)) return;
+    const exSets = todaySets
+      .filter((s) => s.exercise_id === exId)
+      .sort((a, b) => a.set_number - b.set_number);
+    const last = exSets[exSets.length - 1];
+    if (last && !String(last.id).startsWith("optimistic-")) {
+      if (Number(last.weight) === weight && Number(last.reps) === reps) return;
+      await saveSet.mutateAsync({ id: last.id, weight, reps });
+      return;
+    }
+    if (last) return;
+    await saveSet.mutateAsync({
+      exercise_id: exId,
+      set_number: 1,
+      weight,
+      reps,
+      date: today,
+    });
+  }
+
+  async function persistAllEntries() {
+    for (const [exId, value] of Object.entries(entry)) {
+      try {
+        await persistEntry(exId, value);
+      } catch {
+        /* erro já sinalizado pelo toast da mutação */
+      }
+    }
+  }
+
   function start() {
     setStarted(true);
     setStartedAt(Date.now());
     setChecked({});
     toast.success("Treino iniciado. Bom treino!");
   }
+
 
   /** Marca o hábito de treino do dia como concluído, se existir. */
   async function markWorkoutHabit(user_id: string) {
@@ -127,8 +166,10 @@ function WorkoutDetail() {
   async function finish() {
     setFinishing(true);
     try {
+      await persistAllEntries();
       const user_id = await currentUserId();
       const duration = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 60000)) : null;
+
       const { error } = await db.from("workout_sessions").insert({
         user_id,
         workout_id: id,
@@ -305,6 +346,7 @@ function WorkoutDetail() {
                       onChange={(e) =>
                         setEntry({ ...entry, [ex.id]: { ...value, weight: e.target.value } })
                       }
+                      onBlur={() => persistEntry(ex.id, value)}
                       className="h-9"
                     />
                   </label>
@@ -318,9 +360,11 @@ function WorkoutDetail() {
                       onChange={(e) =>
                         setEntry({ ...entry, [ex.id]: { ...value, reps: e.target.value } })
                       }
+                      onBlur={() => persistEntry(ex.id, value)}
                       className="h-9"
                     />
                   </label>
+
                   <Button type="submit" size="sm" variant="secondary" className="h-9">
                     <Plus className="size-4" />
                   </Button>
