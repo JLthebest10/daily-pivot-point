@@ -47,7 +47,16 @@ export function useUpdateProfile() {
       const { error } = await db.from("profiles").update(values).eq("id", auth.user.id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries(),
-    onError: (e: Error) => toast.error(e.message),
+    onMutate: async (values: Partial<Profile>) => {
+      await qc.cancelQueries({ queryKey: ["profile"] });
+      const prev = qc.getQueryData<Profile | null>(["profile"]);
+      if (prev) qc.setQueryData(["profile"], { ...prev, ...values });
+      return { prev };
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx) qc.setQueryData(["profile"], ctx.prev);
+      toast.error(e.message || "Não foi possível salvar. Tente novamente.");
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["profile"] }),
   });
 }

@@ -137,7 +137,8 @@ function WorkoutDetail() {
       });
       if (error) throw error;
       const marked = await markWorkoutHabit(user_id);
-      qc.invalidateQueries();
+      qc.invalidateQueries({ queryKey: ["workout_sessions"] });
+      qc.invalidateQueries({ queryKey: ["habit_completions"] });
       setStarted(false);
       setStartedAt(null);
       setChecked({});

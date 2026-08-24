@@ -180,7 +180,7 @@ function DietPage() {
         marked += 1;
       }
       if (marked > 0) {
-        qc.invalidateQueries();
+        qc.invalidateQueries({ queryKey: ["habit_completions"] });
         toast.success("Todas as refeições concluídas — hábito de dieta marcado!");
       }
     })();
@@ -400,7 +400,7 @@ function DietPage() {
               days: form.days,
             })) as { id: string };
             await saveOptions(saved.id, form.options);
-            qc.invalidateQueries();
+            qc.invalidateQueries({ queryKey: ["meal_options"] });
             setOpen(false);
             setEditing(null);
             setForm(EMPTY);
