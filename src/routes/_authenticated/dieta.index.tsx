@@ -144,6 +144,10 @@ function DietPage() {
   const options = useList<MealOption>("meal_options", { order: { column: "order_index" } });
   const logs = useList<MealLog>("meal_logs", { eq: { date: today } });
   const habits = useList<HabitRow>("habits", { eq: { archived: false } });
+  const completions = useList<{ id: string; habit_id: string; date: string }>(
+    "habit_completions",
+    { eq: { date: today } },
+  );
   const save = useSave("meals", "Refeição salva");
   const remove = useRemove("meals", "Refeição excluída");
   const toggle = useToggleMeal();
