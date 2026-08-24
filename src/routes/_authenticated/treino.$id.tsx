@@ -242,6 +242,11 @@ function WorkoutDetail() {
                     <p className="text-xs text-muted-foreground">
                       {ex.target_sets}×{ex.target_reps} · descanso {ex.rest_sec}s
                     </p>
+                    {last && (
+                      <p className="num mt-0.5 text-xs text-muted-foreground">
+                        Última vez: {Number(last.weight)}kg × {last.reps} ({shortDate(last.date)})
+                      </p>
+                    )}
                   </div>
                   <Button
                     variant="ghost"
