@@ -157,7 +157,7 @@ function DietPage() {
   const [form, setForm] = useState(EMPTY);
   /** Opção escolhida antes de marcar o check. */
   const [picked, setPicked] = useState<Record<string, string | null>>({});
-  const habitMarked = useRef(false);
+  
   const syncedRef = useRef<string | null>(null);
 
   const list = (meals.data ?? []).filter((m) => !m.archived);
