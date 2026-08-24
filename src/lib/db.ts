@@ -90,8 +90,22 @@ export function restoreTable(qc: QueryClient, snapshots: ReturnType<typeof patch
   for (const [queryKey, rows] of snapshots) qc.setQueryData(queryKey, rows);
 }
 
+/** Ids temporários criados pela interface otimista (ainda não existem no backend). */
+export function isOptimisticId(id: unknown): boolean {
+  return typeof id === "string" && id.startsWith("optimistic-");
+}
+
+export function newOptimisticId() {
+  return `optimistic-${Math.random().toString(36).slice(2)}`;
+}
+
 export function optimisticInsert(qc: QueryClient, table: string, row: Row) {
   return patchTable(qc, table, (rows, key) => (rowMatches(row, key) ? [...rows, row] : rows));
+}
+
+/** Troca a linha temporária pela linha real assim que o backend responde. */
+export function replaceOptimisticRow(qc: QueryClient, table: string, tempId: string, row: Row) {
+  patchTable(qc, table, (rows) => rows.map((r) => (r.id === tempId ? row : r)));
 }
 
 export function optimisticUpdate(
@@ -108,6 +122,7 @@ export function optimisticUpdate(
 export function optimisticDelete(qc: QueryClient, table: string, id: string) {
   return patchTable(qc, table, (rows) => rows.filter((r) => r.id !== id));
 }
+
 
 const FAIL = "Não foi possível salvar. Tente novamente.";
 
