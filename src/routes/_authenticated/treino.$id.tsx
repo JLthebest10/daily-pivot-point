@@ -327,7 +327,8 @@ function WorkoutDetail() {
             const exSets = todaySets
               .filter((s) => s.exercise_id === ex.id)
               .sort((a, b) => a.set_number - b.set_number);
-            const last = lastByExercise.get(ex.id);
+            // A série de hoje exibida por último prevalece; sem série hoje, usa o histórico.
+            const last = exSets[exSets.length - 1] ?? lastByExercise.get(ex.id);
             const value =
               entry[ex.id] ??
               ({
