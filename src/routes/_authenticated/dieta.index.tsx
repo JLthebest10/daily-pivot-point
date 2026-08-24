@@ -88,8 +88,25 @@ function useToggleMeal() {
         .insert({ meal_id: mealId, date, user_id, option_id: optionId ?? null });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries(),
-    onError: (e: Error) => toast.error(e.message),
+    // Check imediato na interface; persistência em segundo plano.
+    onMutate: async (vars) => {
+      await qc.cancelQueries({ queryKey: ["meal_logs"] });
+      const snapshots = vars.logId
+        ? optimisticDelete(qc, "meal_logs", vars.logId)
+        : optimisticInsert(qc, "meal_logs", {
+            id: `optimistic-${Math.random().toString(36).slice(2)}`,
+            meal_id: vars.mealId,
+            date: vars.date,
+            option_id: vars.optionId ?? null,
+            created_at: new Date().toISOString(),
+          } as Row);
+      return { snapshots };
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.snapshots) restoreTable(qc, ctx.snapshots);
+      toast.error(e.message || "Não foi possível salvar. Tente novamente.");
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["meal_logs"] }),
   });
 }
 
