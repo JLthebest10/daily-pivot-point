@@ -344,6 +344,7 @@ function WorkoutDetail() {
                       onChange={(e) =>
                         setEntry({ ...entry, [ex.id]: { ...value, weight: e.target.value } })
                       }
+                      onBlur={() => persistEntry(ex.id, value)}
                       className="h-9"
                     />
                   </label>
@@ -357,9 +358,11 @@ function WorkoutDetail() {
                       onChange={(e) =>
                         setEntry({ ...entry, [ex.id]: { ...value, reps: e.target.value } })
                       }
+                      onBlur={() => persistEntry(ex.id, value)}
                       className="h-9"
                     />
                   </label>
+
                   <Button type="submit" size="sm" variant="secondary" className="h-9">
                     <Plus className="size-4" />
                   </Button>
