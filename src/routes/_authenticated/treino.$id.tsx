@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HabitCheck } from "@/components/habits/HabitCheck";
+import { RestTimer } from "@/components/treino/RestTimer";
 import {
   Bar,
   Field,
