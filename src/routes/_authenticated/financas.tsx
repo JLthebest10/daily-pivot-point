@@ -37,6 +37,7 @@ import {
 } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
 import { BankConnections } from "@/components/finance/BankConnections";
+import { StatementImport } from "@/components/finance/StatementImport";
 
 export const Route = createFileRoute("/_authenticated/financas")({
   head: () => ({
@@ -301,7 +302,12 @@ function FinancePage() {
           </ul>
         ))}
 
-      {tab === "contas" && <BankConnections />}
+      {tab === "contas" && (
+        <div className="space-y-6">
+          <BankConnections />
+          <StatementImport />
+        </div>
+      )}
 
       {tab === "compras" && (
         <div className="space-y-3">
