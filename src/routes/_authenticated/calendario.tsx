@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { EmptyState, Field, FormModal, LoadingList, PageHeader } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
+import { IMPORTANCE, importanceOf } from "@/lib/importance";
 
 export const Route = createFileRoute("/_authenticated/calendario")({
   head: () => ({
@@ -51,6 +52,7 @@ export type EventRow = {
   color: string;
   repeat: string;
   reminder_min: number | null;
+  importance: string;
 };
 
 const CATEGORIES = ["Trabalho", "Treino", "Faculdade", "Saúde", "Pessoal", "Geral"];
@@ -95,6 +97,7 @@ function CalendarPage() {
     category: "Geral",
     repeat: "none",
     reminder_min: "15",
+    importance: "normal",
   });
 
   const byDate = (iso: string) =>
@@ -124,6 +127,7 @@ function CalendarPage() {
       category: form.category,
       color: "sage",
       repeat: form.repeat,
+      importance: form.importance,
       reminder_min: form.reminder_min === "" ? null : Number(form.reminder_min),
     });
     setForm({ ...form, title: "", location: "", description: "" });
@@ -230,7 +234,12 @@ function CalendarPage() {
                 >
                   <span className="num">{d.getDate()}</span>
                   <span className="mt-1 flex gap-0.5">
-                    {items.length > 0 && <span className="size-1.5 rounded-full bg-primary" />}
+                    {items.slice(0, 3).map((ev) => (
+                      <span
+                        key={ev.id}
+                        className={cn("size-1.5 rounded-full", importanceOf(ev.importance).dot)}
+                      />
+                    ))}
                     {tasksByDate(iso).length > 0 && (
                       <span className="size-1.5 rounded-full bg-foreground/40" />
                     )}
@@ -332,6 +341,26 @@ function CalendarPage() {
               </Select>
             </Field>
           </div>
+          <Field label="Nível de importância">
+            <Select
+              value={form.importance}
+              onValueChange={(v) => setForm({ ...form, importance: v })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {IMPORTANCE.map((i) => (
+                  <SelectItem key={i.value} value={i.value}>
+                    <span className="flex items-center gap-2">
+                      <span className={cn("size-2 rounded-full", i.dot)} />
+                      {i.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
           <Field label="Lembrete">
             <Select
               value={form.reminder_min}
@@ -384,13 +413,19 @@ function DayBlock({
       ) : items.length === 0 ? null : (
         <ul className="mt-3 space-y-2">
           {items.map((e) => (
-            <li key={e.id} className="flex items-start gap-3 border-l-2 border-primary pl-3">
+            <li
+              key={e.id}
+              className={cn("flex items-start gap-3 border-l-2 pl-3", importanceOf(e.importance).border)}
+            >
               <div className="min-w-0 flex-1">
                 <p className="num text-sm font-medium">
                   {e.start_time ?? "--:--"} — {e.title}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {e.category}
+                  <span className={importanceOf(e.importance).text}>
+                    {importanceOf(e.importance).label}
+                  </span>{" "}
+                  · {e.category}
                   {e.location ? ` · ${e.location}` : ""} · {e.duration_min}min
                   {e.reminder_min !== null ? ` · lembrete ${e.reminder_min}min antes` : ""}
                 </p>

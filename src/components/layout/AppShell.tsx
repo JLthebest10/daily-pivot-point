@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   BarChart3,
   CalendarDays,
@@ -8,7 +8,8 @@ import {
   Flag,
   LayoutGrid,
   ListTodo,
-  PawPrint,
+  Salad,
+  LogOut,
   Search,
   Sun,
   Moon,
@@ -16,6 +17,8 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
@@ -34,7 +37,7 @@ export const NAV = [
   { to: "/habitos", label: "Hábitos", icon: CheckCircle2 },
   { to: "/treino", label: "Treino", icon: Dumbbell },
   { to: "/financas", label: "Finanças", icon: Wallet },
-  { to: "/pets", label: "Pets", icon: PawPrint },
+  { to: "/dieta", label: "Dieta", icon: Salad },
   { to: "/calendario", label: "Calendário", icon: CalendarDays },
   { to: "/tarefas", label: "Tarefas", icon: ListTodo },
   { to: "/metas", label: "Metas", icon: Flag },
@@ -52,6 +55,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { theme, setTheme } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  async function signOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   const isActive = (to: string) => pathname === to || pathname.startsWith(to + "/");
 
@@ -88,7 +100,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
 
-        <div className="flex items-center px-1">
+        <div className="flex items-center gap-1 px-1">
           <Button
             variant="ghost"
             size="icon"
@@ -96,6 +108,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
             {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </Button>
+          <Button variant="ghost" size="icon" aria-label="Sair da conta" onClick={() => void signOut()}>
+            <LogOut className="size-4" />
           </Button>
         </div>
       </aside>
@@ -113,6 +128,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
             {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </Button>
+          <Button variant="ghost" size="icon" aria-label="Sair da conta" onClick={() => void signOut()}>
+            <LogOut className="size-4" />
           </Button>
         </div>
       </header>

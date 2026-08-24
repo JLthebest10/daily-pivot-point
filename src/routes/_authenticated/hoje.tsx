@@ -23,7 +23,13 @@ export const Route = createFileRoute("/_authenticated/hoje")({
 });
 
 type Task = { id: string; title: string; due_date: string | null; due_time: string | null; done: boolean };
-type Event = { id: string; title: string; date: string; start_time: string | null };
+type Event = {
+  id: string;
+  title: string;
+  date: string;
+  start_time: string | null;
+  importance: string;
+};
 type Tx = { id: string; amount: number; date: string; type?: string };
 
 function TodayPage() {
@@ -154,10 +160,21 @@ function TodayPage() {
       <section className="mt-8">
         <SectionTitle>Próximas semanas</SectionTitle>
         <MiniCalendar
-          events={events.data ?? []}
+          events={(events.data ?? []).map((e) => ({
+            id: e.id,
+            title: e.title,
+            date: e.date,
+            time: e.start_time,
+            importance: e.importance,
+          }))}
           tasks={allTasks
-            .filter((t) => t.due_date)
-            .map((t) => ({ id: t.id, title: t.title, date: t.due_date! }))}
+            .filter((t) => t.due_date && !t.done)
+            .map((t) => ({
+              id: t.id,
+              title: t.title,
+              date: t.due_date!,
+              time: t.due_time,
+            }))}
         />
       </section>
 

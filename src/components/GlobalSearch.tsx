@@ -26,7 +26,7 @@ export function GlobalSearch({
   });
   const tasks = useList<{ id: string; title: string }>("tasks", { enabled: open });
   const events = useList<{ id: string; title: string }>("events", { enabled: open });
-  const pets = useList<{ id: string; name: string }>("pets", { enabled: open });
+  const meals = useList<{ id: string; name: string }>("meals", { enabled: open });
   const purchases = useList<{ id: string; product: string }>("purchases", { enabled: open });
   const transactions = useList<{ id: string; description: string | null; category: string }>(
     "transactions",
@@ -64,11 +64,11 @@ export function GlobalSearch({
       group: "Eventos",
       to: "/calendario",
     })),
-    ...(pets.data ?? []).map((p) => ({
-      id: p.id,
-      label: p.name,
-      group: "Pets",
-      to: `/pets/${p.id}`,
+    ...(meals.data ?? []).map((m) => ({
+      id: m.id,
+      label: m.name,
+      group: "Dieta",
+      to: "/dieta",
     })),
     ...(purchases.data ?? []).map((p) => ({
       id: p.id,

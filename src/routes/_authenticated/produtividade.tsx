@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/produtividade")({
 type Task = { id: string; title: string; due_date: string | null; done: boolean };
 
 function Ring({ value, day, muted }: { value: number; day: number; muted: boolean }) {
-  const size = 40;
+  const size = 46;
   const stroke = 4;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
@@ -51,13 +51,16 @@ function Ring({ value, day, muted }: { value: number; day: number; muted: boolea
           />
         )}
       </svg>
-      <span
-        className={cn(
-          "num absolute text-[10px] font-medium",
-          muted && "text-muted-foreground/60",
-        )}
-      >
-        {day}
+      <span className="absolute flex flex-col items-center leading-none">
+        <span
+          className={cn(
+            "num text-[11px] font-semibold",
+            muted ? "text-muted-foreground/50" : "text-foreground",
+          )}
+        >
+          {muted ? "–" : `${Math.round(value)}%`}
+        </span>
+        <span className="num mt-0.5 text-[9px] text-muted-foreground">{day}</span>
       </span>
     </span>
   );

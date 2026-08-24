@@ -21,10 +21,10 @@ import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedProdutividadeRouteImport } from './routes/_authenticated/produtividade'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
+import { Route as AuthenticatedDietaIndexRouteImport } from './routes/_authenticated/dieta.index'
+import { Route as AuthenticatedDietaEvolucaoRouteImport } from './routes/_authenticated/dieta.evolucao'
 import { Route as AuthenticatedHabitosIndexRouteImport } from './routes/_authenticated/habitos.index'
 import { Route as AuthenticatedHabitosIdRouteImport } from './routes/_authenticated/habitos.$id'
-import { Route as AuthenticatedPetsIndexRouteImport } from './routes/_authenticated/pets.index'
-import { Route as AuthenticatedPetsIdRouteImport } from './routes/_authenticated/pets.$id'
 import { Route as AuthenticatedTreinoIndexRouteImport } from './routes/_authenticated/treino.index'
 import { Route as AuthenticatedTreinoIdRouteImport } from './routes/_authenticated/treino.$id'
 
@@ -89,6 +89,17 @@ const AuthenticatedTarefasRoute = AuthenticatedTarefasRouteImport.update({
   path: '/tarefas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDietaIndexRoute = AuthenticatedDietaIndexRouteImport.update({
+  id: '/dieta/',
+  path: '/dieta/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDietaEvolucaoRoute =
+  AuthenticatedDietaEvolucaoRouteImport.update({
+    id: '/dieta/evolucao',
+    path: '/dieta/evolucao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHabitosIndexRoute =
   AuthenticatedHabitosIndexRouteImport.update({
     id: '/habitos/',
@@ -98,16 +109,6 @@ const AuthenticatedHabitosIndexRoute =
 const AuthenticatedHabitosIdRoute = AuthenticatedHabitosIdRouteImport.update({
   id: '/habitos/$id',
   path: '/habitos/$id',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPetsIndexRoute = AuthenticatedPetsIndexRouteImport.update({
-  id: '/pets/',
-  path: '/pets/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPetsIdRoute = AuthenticatedPetsIdRouteImport.update({
-  id: '/pets/$id',
-  path: '/pets/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTreinoIndexRoute =
@@ -134,11 +135,11 @@ export interface FileRoutesByFullPath {
   '/metas': typeof AuthenticatedMetasRoute
   '/produtividade': typeof AuthenticatedProdutividadeRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
+  '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
-  '/pets/$id': typeof AuthenticatedPetsIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
+  '/dieta/': typeof AuthenticatedDietaIndexRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
-  '/pets/': typeof AuthenticatedPetsIndexRoute
   '/treino/': typeof AuthenticatedTreinoIndexRoute
 }
 export interface FileRoutesByTo {
@@ -153,11 +154,11 @@ export interface FileRoutesByTo {
   '/metas': typeof AuthenticatedMetasRoute
   '/produtividade': typeof AuthenticatedProdutividadeRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
+  '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
-  '/pets/$id': typeof AuthenticatedPetsIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
+  '/dieta': typeof AuthenticatedDietaIndexRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
-  '/pets': typeof AuthenticatedPetsIndexRoute
   '/treino': typeof AuthenticatedTreinoIndexRoute
 }
 export interface FileRoutesById {
@@ -174,11 +175,11 @@ export interface FileRoutesById {
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/produtividade': typeof AuthenticatedProdutividadeRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
+  '/_authenticated/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
-  '/_authenticated/pets/$id': typeof AuthenticatedPetsIdRoute
   '/_authenticated/treino/$id': typeof AuthenticatedTreinoIdRoute
+  '/_authenticated/dieta/': typeof AuthenticatedDietaIndexRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
-  '/_authenticated/pets/': typeof AuthenticatedPetsIndexRoute
   '/_authenticated/treino/': typeof AuthenticatedTreinoIndexRoute
 }
 export interface FileRouteTypes {
@@ -195,11 +196,11 @@ export interface FileRouteTypes {
     | '/metas'
     | '/produtividade'
     | '/tarefas'
+    | '/dieta/evolucao'
     | '/habitos/$id'
-    | '/pets/$id'
     | '/treino/$id'
+    | '/dieta/'
     | '/habitos/'
-    | '/pets/'
     | '/treino/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -214,11 +215,11 @@ export interface FileRouteTypes {
     | '/metas'
     | '/produtividade'
     | '/tarefas'
+    | '/dieta/evolucao'
     | '/habitos/$id'
-    | '/pets/$id'
     | '/treino/$id'
+    | '/dieta'
     | '/habitos'
-    | '/pets'
     | '/treino'
   id:
     | '__root__'
@@ -234,11 +235,11 @@ export interface FileRouteTypes {
     | '/_authenticated/metas'
     | '/_authenticated/produtividade'
     | '/_authenticated/tarefas'
+    | '/_authenticated/dieta/evolucao'
     | '/_authenticated/habitos/$id'
-    | '/_authenticated/pets/$id'
     | '/_authenticated/treino/$id'
+    | '/_authenticated/dieta/'
     | '/_authenticated/habitos/'
-    | '/_authenticated/pets/'
     | '/_authenticated/treino/'
   fileRoutesById: FileRoutesById
 }
@@ -335,6 +336,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTarefasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dieta/': {
+      id: '/_authenticated/dieta/'
+      path: '/dieta'
+      fullPath: '/dieta/'
+      preLoaderRoute: typeof AuthenticatedDietaIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dieta/evolucao': {
+      id: '/_authenticated/dieta/evolucao'
+      path: '/dieta/evolucao'
+      fullPath: '/dieta/evolucao'
+      preLoaderRoute: typeof AuthenticatedDietaEvolucaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/habitos/': {
       id: '/_authenticated/habitos/'
       path: '/habitos'
@@ -347,20 +362,6 @@ declare module '@tanstack/react-router' {
       path: '/habitos/$id'
       fullPath: '/habitos/$id'
       preLoaderRoute: typeof AuthenticatedHabitosIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/pets/': {
-      id: '/_authenticated/pets/'
-      path: '/pets'
-      fullPath: '/pets/'
-      preLoaderRoute: typeof AuthenticatedPetsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/pets/$id': {
-      id: '/_authenticated/pets/$id'
-      path: '/pets/$id'
-      fullPath: '/pets/$id'
-      preLoaderRoute: typeof AuthenticatedPetsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/treino/': {
@@ -389,11 +390,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedProdutividadeRoute: typeof AuthenticatedProdutividadeRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
+  AuthenticatedDietaEvolucaoRoute: typeof AuthenticatedDietaEvolucaoRoute
   AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
-  AuthenticatedPetsIdRoute: typeof AuthenticatedPetsIdRoute
   AuthenticatedTreinoIdRoute: typeof AuthenticatedTreinoIdRoute
+  AuthenticatedDietaIndexRoute: typeof AuthenticatedDietaIndexRoute
   AuthenticatedHabitosIndexRoute: typeof AuthenticatedHabitosIndexRoute
-  AuthenticatedPetsIndexRoute: typeof AuthenticatedPetsIndexRoute
   AuthenticatedTreinoIndexRoute: typeof AuthenticatedTreinoIndexRoute
 }
 
@@ -406,11 +407,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedProdutividadeRoute: AuthenticatedProdutividadeRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
+  AuthenticatedDietaEvolucaoRoute: AuthenticatedDietaEvolucaoRoute,
   AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
-  AuthenticatedPetsIdRoute: AuthenticatedPetsIdRoute,
   AuthenticatedTreinoIdRoute: AuthenticatedTreinoIdRoute,
+  AuthenticatedDietaIndexRoute: AuthenticatedDietaIndexRoute,
   AuthenticatedHabitosIndexRoute: AuthenticatedHabitosIndexRoute,
-  AuthenticatedPetsIndexRoute: AuthenticatedPetsIndexRoute,
   AuthenticatedTreinoIndexRoute: AuthenticatedTreinoIndexRoute,
 }
 

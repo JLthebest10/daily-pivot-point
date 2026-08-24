@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
 import { useTheme } from "@/hooks/use-theme";
-import { deviceAccount } from "@/lib/session";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, PageHeader, SectionTitle } from "@/components/ui-kit";
@@ -43,13 +45,23 @@ function SettingsPage() {
     setSavingsGoal(String(profile.monthly_savings_goal ?? 0));
   }, [profile]);
 
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   useEffect(() => {
-    setAccount(deviceAccount()?.email ?? null);
+    supabase.auth.getUser().then(({ data }) => setAccount(data.user?.email ?? null));
   }, []);
+
+  async function signOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   return (
     <>
-      <PageHeader title="Configurações" subtitle="Este app é só seu — sem login." />
+      <PageHeader title="Configurações" subtitle="Sua conta, preferências e metas." />
 
       <form
         className="surface space-y-4 px-4 py-5"
@@ -108,11 +120,16 @@ function SettingsPage() {
       </section>
 
       <section className="mt-8">
-        <SectionTitle>Seus dados</SectionTitle>
-        <p className="text-sm text-muted-foreground">
-          Seus dados ficam salvos na nuvem e ligados a este dispositivo
-          {account ? ` (${account})` : ""}. Não é preciso digitar senha para usar o app.
-        </p>
+        <SectionTitle>Conta</SectionTitle>
+        <div className="surface px-4 py-4">
+          <p className="text-sm">{account ?? "..."}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Seus dados ficam salvos na nuvem e acompanham você em qualquer dispositivo.
+          </p>
+          <Button variant="outline" className="mt-4" onClick={() => void signOut()}>
+            Sair da conta
+          </Button>
+        </div>
       </section>
     </>
   );

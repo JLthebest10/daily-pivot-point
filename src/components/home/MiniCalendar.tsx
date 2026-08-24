@@ -1,9 +1,16 @@
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { addDays, startOfWeek, toISODate, WEEKDAYS, shortDate } from "@/lib/format";
+import { addDays, startOfWeek, toISODate, WEEKDAYS, shortDate, relativeDays } from "@/lib/format";
+import { importanceOf } from "@/lib/importance";
 
-type Item = { id: string; title: string; date: string; time?: string | null };
+type Item = {
+  id: string;
+  title: string;
+  date: string;
+  time?: string | null;
+  importance?: string | null;
+};
 
 export function MiniCalendar({ events, tasks }: { events: Item[]; tasks: Item[] }) {
   const today = toISODate();
@@ -13,14 +20,14 @@ export function MiniCalendar({ events, tasks }: { events: Item[]; tasks: Item[] 
   }, []);
 
   const byDate = useMemo(() => {
-    const m = new Map<string, { events: number; tasks: number }>();
+    const m = new Map<string, { dots: string[]; tasks: number }>();
     for (const e of events) {
-      const c = m.get(e.date) ?? { events: 0, tasks: 0 };
-      c.events += 1;
+      const c = m.get(e.date) ?? { dots: [], tasks: 0 };
+      c.dots.push(importanceOf(e.importance).dot);
       m.set(e.date, c);
     }
     for (const t of tasks) {
-      const c = m.get(t.date) ?? { events: 0, tasks: 0 };
+      const c = m.get(t.date) ?? { dots: [], tasks: 0 };
       c.tasks += 1;
       m.set(t.date, c);
     }
@@ -29,11 +36,11 @@ export function MiniCalendar({ events, tasks }: { events: Item[]; tasks: Item[] 
 
   const upcoming = useMemo(
     () =>
-      [...events]
+      [...events, ...tasks]
         .filter((e) => e.date >= today)
         .sort((a, b) => (a.date + (a.time ?? "")).localeCompare(b.date + (b.time ?? "")))
-        .slice(0, 3),
-    [events, today],
+        .slice(0, 4),
+    [events, tasks, today],
   );
 
   return (
@@ -60,14 +67,12 @@ export function MiniCalendar({ events, tasks }: { events: Item[]; tasks: Item[] 
             >
               <span className="num">{d.getDate()}</span>
               <span className="mt-1 flex h-1 gap-0.5">
-                {marks?.events ? (
+                {marks?.dots.slice(0, 3).map((dot, i) => (
                   <span
-                    className={cn(
-                      "size-1 rounded-full",
-                      isToday ? "bg-primary-foreground" : "bg-primary",
-                    )}
+                    key={i}
+                    className={cn("size-1 rounded-full", isToday ? "bg-primary-foreground" : dot)}
                   />
-                ) : null}
+                ))}
                 {marks?.tasks ? (
                   <span
                     className={cn(
@@ -86,16 +91,25 @@ export function MiniCalendar({ events, tasks }: { events: Item[]; tasks: Item[] 
         {upcoming.length === 0 ? (
           <p className="text-xs text-muted-foreground">Nenhum compromisso futuro.</p>
         ) : (
-          <ul className="space-y-1.5">
-            {upcoming.map((e) => (
-              <li key={e.id} className="flex items-center justify-between gap-3 text-xs">
-                <span className="truncate">{e.title}</span>
-                <span className="num shrink-0 text-muted-foreground">
-                  {shortDate(e.date)}
-                  {e.time ? ` · ${e.time}` : ""}
-                </span>
-              </li>
-            ))}
+          <ul className="space-y-2">
+            {upcoming.map((e) => {
+              const level = importanceOf(e.importance);
+              return (
+                <li key={e.id} className="flex items-center justify-between gap-3 text-xs">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className={cn("size-1.5 shrink-0 rounded-full", level.dot)} />
+                    <span className="truncate">{e.title}</span>
+                  </span>
+                  <span className="shrink-0 text-right">
+                    <span className="text-foreground">{relativeDays(e.date)}</span>
+                    <span className="num ml-1.5 text-muted-foreground">
+                      {shortDate(e.date)}
+                      {e.time ? ` · ${e.time}` : ""}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
