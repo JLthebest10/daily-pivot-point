@@ -63,6 +63,9 @@ function WorkoutDetail() {
     order: { column: "order_index" },
   });
   const sets = useList<SetRow>("exercise_sets", { eq: { date: today } });
+  const history = useList<SetRow>("exercise_sets", {
+    order: { column: "date", ascending: false },
+  });
   const habits = useList<HabitRow>("habits", { eq: { archived: false } });
   const saveExercise = useSave("exercises", "Exercício adicionado");
   const removeExercise = useRemove("exercises", "Exercício removido");
