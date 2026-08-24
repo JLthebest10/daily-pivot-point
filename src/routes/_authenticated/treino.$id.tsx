@@ -166,8 +166,10 @@ function WorkoutDetail() {
   async function finish() {
     setFinishing(true);
     try {
+      await persistAllEntries();
       const user_id = await currentUserId();
       const duration = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 60000)) : null;
+
       const { error } = await db.from("workout_sessions").insert({
         user_id,
         workout_id: id,
