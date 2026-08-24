@@ -388,20 +388,22 @@ function WorkoutDetail() {
                 </div>
 
                 {exSets.length > 0 && (
-                  <ul className="mt-3 space-y-1">
+                  <ul className="mt-3 flex flex-wrap gap-1.5">
                     {exSets.map((s) => (
                       <li
                         key={s.id}
-                        className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-1.5 text-xs"
+                        className="num flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px]"
                       >
-                        <span className="num">
-                          Série {s.set_number} · {Number(s.weight)}kg × {s.reps}
+                        <span className="text-muted-foreground">{s.set_number}</span>
+                        <span>
+                          {Number(s.weight)}kg×{s.reps}
                         </span>
                         <button
+                          aria-label={`Remover série ${s.set_number}`}
                           className="text-muted-foreground hover:text-destructive"
                           onClick={() => removeSet.mutate(s.id)}
                         >
-                          remover
+                          ×
                         </button>
                       </li>
                     ))}
@@ -413,6 +415,8 @@ function WorkoutDetail() {
                   onSubmit={async (e) => {
                     e.preventDefault();
                     const session_id = await ensureSession();
+                    await (saveQueueRef.current[ex.id] ?? Promise.resolve()).catch(() => undefined);
+                    delete autoSetIdRef.current[ex.id];
                     await saveSet.mutateAsync({
                       session_id,
                       exercise_id: ex.id,
