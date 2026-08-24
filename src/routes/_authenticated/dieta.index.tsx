@@ -158,6 +158,7 @@ function DietPage() {
   /** Opção escolhida antes de marcar o check. */
   const [picked, setPicked] = useState<Record<string, string | null>>({});
   const habitMarked = useRef(false);
+  const syncedRef = useRef<string | null>(null);
 
   const list = (meals.data ?? []).filter((m) => !m.archived);
   const optionsOf = (mealId: string) => (options.data ?? []).filter((o) => o.meal_id === mealId);
