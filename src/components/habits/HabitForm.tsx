@@ -71,10 +71,11 @@ export function HabitForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim() || form.days.length === 0) return;
+    const icon = form.icon.trim() || "⭐";
     await save.mutateAsync({
       ...(habit ? { id: habit.id } : {}),
       name: form.name.trim(),
-      icon: form.icon,
+      icon,
       category: form.category,
       color: form.color,
       days: form.days,
@@ -106,13 +107,15 @@ export function HabitForm({
           <Input
             value={form.icon}
             onChange={(e) => {
-              // Pega apenas o primeiro emoji/grapheme do campo
-              const value = Array.from(e.target.value.trim())[0] ?? "";
-              setForm({ ...form, icon: value || "⭐" });
+              const value = e.target.value;
+              const first = Array.from(value)[0] ?? "";
+              setForm({ ...form, icon: first });
             }}
             placeholder="Digite ou cole um emoji"
             className="text-lg"
             maxLength={4}
+            inputMode="text"
+            autoComplete="off"
           />
           <div className="flex flex-wrap gap-1.5 pt-1">
             {HABIT_ICONS.map((i) => (
