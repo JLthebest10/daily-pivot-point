@@ -89,6 +89,7 @@ function WorkoutDetail() {
   const sessionIdRef = useRef<string | null>(null);
   const sessionPromiseRef = useRef<Promise<string> | null>(null);
   const saveQueueRef = useRef<Record<string, Promise<void>>>({});
+  const autoSetIdRef = useRef<Record<string, string>>({});
 
   const workout = (workouts.data ?? [])[0];
   const list = exercises.data ?? [];
@@ -154,23 +155,28 @@ function WorkoutDetail() {
     if (!value.weight && !value.reps) return;
     if (!Number.isFinite(weight) || !Number.isFinite(reps)) return;
     const session_id = await ensureSession();
-    const { data: existing, error: lookupError } = await db
-      .from("exercise_sets")
-      .select("id, weight, reps")
-      .eq("session_id", session_id)
-      .eq("exercise_id", exId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (lookupError) throw lookupError;
 
-    if (existing?.id) {
-      if (Number(existing.weight) === weight && Number(existing.reps) === reps) return;
-      const { error } = await db.from("exercise_sets").update({ weight, reps }).eq("id", existing.id);
+    const draftId = autoSetIdRef.current[exId];
+    if (draftId) {
+      const { error } = await db.from("exercise_sets").update({ weight, reps }).eq("id", draftId);
       if (error) throw error;
-    } else {
-      const user_id = await currentUserId();
-      const { error } = await db.from("exercise_sets").insert({
+      await qc.invalidateQueries({ queryKey: ["exercise_sets"] });
+      return;
+    }
+
+    // Já existem séries registradas hoje: não altera nenhuma — use o botão "+".
+    const { count, error: countError } = await db
+      .from("exercise_sets")
+      .select("id", { count: "exact", head: true })
+      .eq("session_id", session_id)
+      .eq("exercise_id", exId);
+    if (countError) throw countError;
+    if ((count ?? 0) > 0) return;
+
+    const user_id = await currentUserId();
+    const { data: created, error } = await db
+      .from("exercise_sets")
+      .insert({
         user_id,
         session_id,
         exercise_id: exId,
@@ -178,9 +184,11 @@ function WorkoutDetail() {
         weight,
         reps,
         date: today,
-      });
-      if (error) throw error;
-    }
+      })
+      .select("id")
+      .single();
+    if (error) throw error;
+    autoSetIdRef.current[exId] = created.id as string;
     await qc.invalidateQueries({ queryKey: ["exercise_sets"] });
   }
 
