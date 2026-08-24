@@ -3,7 +3,17 @@ import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Activity, Camera, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { currentUserId, db, useList, useRemove, useSave } from "@/lib/db";
+import {
+  currentUserId,
+  db,
+  optimisticDelete,
+  optimisticInsert,
+  restoreTable,
+  useList,
+  useRemove,
+  useSave,
+  type Row,
+} from "@/lib/db";
 import { WEEKDAYS, toISODate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
