@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      bank_accounts: {
+        Row: {
+          account_id: string
+          balance: number
+          connection_id: string
+          created_at: string
+          id: string
+          name: string
+          number: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          balance?: number
+          connection_id: string
+          created_at?: string
+          id?: string
+          name?: string
+          number?: string | null
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          balance?: number
+          connection_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          number?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "bank_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_connections: {
+        Row: {
+          created_at: string
+          id: string
+          institution_name: string
+          item_id: string
+          last_synced_at: string | null
+          provider: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          institution_name?: string
+          item_id: string
+          last_synced_at?: string | null
+          provider?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          institution_name?: string
+          item_id?: string
+          last_synced_at?: string | null
+          provider?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       body_photos: {
         Row: {
           created_at: string
@@ -738,38 +821,58 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          bank_account_id: string | null
           category: string
+          category_locked: boolean
           created_at: string
           date: string
           description: string | null
+          external_id: string | null
           id: string
           payment_method: string | null
+          source: string
           type: string
           user_id: string
         }
         Insert: {
           amount: number
+          bank_account_id?: string | null
           category?: string
+          category_locked?: boolean
           created_at?: string
           date?: string
           description?: string | null
+          external_id?: string | null
           id?: string
           payment_method?: string | null
+          source?: string
           type?: string
           user_id: string
         }
         Update: {
           amount?: number
+          bank_account_id?: string | null
           category?: string
+          category_locked?: boolean
           created_at?: string
           date?: string
           description?: string | null
+          external_id?: string | null
           id?: string
           payment_method?: string | null
+          source?: string
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workout_sessions: {
         Row: {
