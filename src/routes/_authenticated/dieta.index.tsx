@@ -375,19 +375,15 @@ function DietPage() {
 
                 {opts.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5 pl-10">
-                    <OptionChip
-                      label={meal.name}
-                      active={!selected}
-                      disabled={!!log}
-                      onClick={() => setPicked({ ...picked, [meal.id]: null })}
-                    />
                     {opts.map((o) => (
                       <OptionChip
                         key={o.id}
                         label={o.kcal ? `${o.name} · ${o.kcal} kcal` : o.name}
                         active={selected === o.id}
                         disabled={!!log}
-                        onClick={() => setPicked({ ...picked, [meal.id]: o.id })}
+                        onClick={() =>
+                          setPicked({ ...picked, [meal.id]: selected === o.id ? null : o.id })
+                        }
                       />
                     ))}
                   </div>
