@@ -50,6 +50,7 @@ type SetRow = {
   weight: number;
   reps: number;
   date: string;
+  created_at: string;
 };
 type HabitRow = { id: string; name: string; category: string; archived: boolean; target: number };
 
@@ -65,7 +66,7 @@ function WorkoutDetail() {
   });
   const sets = useList<SetRow>("exercise_sets", { eq: { date: today } });
   const history = useList<SetRow>("exercise_sets", {
-    order: { column: "date", ascending: false },
+    order: { column: "created_at", ascending: false },
   });
   const habits = useList<HabitRow>("habits", { eq: { archived: false } });
   const saveExercise = useSave("exercises", "Exercício adicionado");
@@ -83,6 +84,7 @@ function WorkoutDetail() {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const sessionIdRef = useRef<string | null>(null);
   const sessionPromiseRef = useRef<Promise<string> | null>(null);
+  const saveQueueRef = useRef<Record<string, Promise<void>>>({});
 
   const workout = (workouts.data ?? [])[0];
   const list = exercises.data ?? [];
@@ -94,7 +96,7 @@ function WorkoutDetail() {
   const lastByExercise = new Map<string, SetRow>();
   for (const s of history.data ?? []) {
     const prev = lastByExercise.get(s.exercise_id);
-    if (!prev || s.date > prev.date || (s.date === prev.date && s.set_number > prev.set_number)) {
+    if (!prev || s.created_at > prev.created_at) {
       lastByExercise.set(s.exercise_id, s);
     }
   }
@@ -142,7 +144,7 @@ function WorkoutDetail() {
    * Salva o que foi digitado (kg/reps) mesmo sem clicar em "+":
    * atualiza a última série do dia ou cria a primeira.
    */
-  async function persistEntry(exId: string, value: { weight: string; reps: string }) {
+  async function persistEntryNow(exId: string, value: { weight: string; reps: string }) {
     const weight = Number(value.weight);
     const reps = Number(value.reps);
     if (!value.weight && !value.reps) return;
@@ -153,7 +155,7 @@ function WorkoutDetail() {
       .select("id, weight, reps")
       .eq("session_id", session_id)
       .eq("exercise_id", exId)
-      .order("set_number", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
     if (lookupError) throw lookupError;
@@ -176,6 +178,14 @@ function WorkoutDetail() {
       if (error) throw error;
     }
     await qc.invalidateQueries({ queryKey: ["exercise_sets"] });
+  }
+
+  /** Evita que os blurs de Kg e Reps criem duas séries ao mesmo tempo. */
+  function persistEntry(exId: string, value: { weight: string; reps: string }) {
+    const previous = saveQueueRef.current[exId] ?? Promise.resolve();
+    const next = previous.catch(() => undefined).then(() => persistEntryNow(exId, value));
+    saveQueueRef.current[exId] = next;
+    return next;
   }
 
   async function persistAllEntries() {
