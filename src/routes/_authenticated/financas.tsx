@@ -86,7 +86,7 @@ const PIE = [
   "var(--color-chart-5)",
 ];
 
-type Tab = "resumo" | "lancamentos" | "compras" | "reserva";
+type Tab = "resumo" | "lancamentos" | "contas" | "compras" | "reserva";
 
 function FinancePage() {
   const [tab, setTab] = useState<Tab>("resumo");
@@ -166,6 +166,7 @@ function FinancePage() {
           [
             ["resumo", "Resumo"],
             ["lancamentos", "Lançamentos"],
+            ["contas", "Contas"],
             ["compras", "Compras"],
             ["reserva", "Reserva"],
           ] as const
