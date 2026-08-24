@@ -86,6 +86,15 @@ function WorkoutDetail() {
   const doneCount = list.filter((e) => checked[e.id]).length;
   const progress = list.length ? (doneCount / list.length) * 100 : 0;
 
+  /** Última série registrada de cada exercício (qualquer data) — mantém a carga anterior. */
+  const lastByExercise = new Map<string, SetRow>();
+  for (const s of history.data ?? []) {
+    const prev = lastByExercise.get(s.exercise_id);
+    if (!prev || s.date > prev.date || (s.date === prev.date && s.set_number > prev.set_number)) {
+      lastByExercise.set(s.exercise_id, s);
+    }
+  }
+
   function start() {
     setStarted(true);
     setStartedAt(Date.now());
