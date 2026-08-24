@@ -75,7 +75,7 @@ type TaskRow = {
   done: boolean;
 };
 
-type View = "month" | "week" | "day";
+type View = "year" | "month" | "week" | "day";
 
 function CalendarPage() {
   const [cursor, setCursor] = useState(new Date());
@@ -110,6 +110,18 @@ function CalendarPage() {
       .filter((t) => t.due_date === iso)
       .sort((a, b) => (a.due_time ?? "").localeCompare(b.due_time ?? ""));
 
+  const markedDays = new Map<string, string>();
+  for (const ev of events.data ?? []) {
+    const level = importanceOf(ev.importance);
+    const prev = markedDays.get(ev.date);
+    if (!prev || level.rank > (IMPORTANCE.find((i) => i.text === prev)?.rank ?? 0)) {
+      markedDays.set(ev.date, level.text);
+    }
+  }
+  for (const t of tasks.data ?? []) {
+    if (t.due_date && !markedDays.has(t.due_date)) markedDays.set(t.due_date, "text-foreground");
+  }
+
   const monthStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const gridStart = startOfWeek(monthStart);
   const gridDays = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
@@ -138,7 +150,9 @@ function CalendarPage() {
     <>
       <PageHeader
         title="Calendário"
-        subtitle={`${MONTHS[cursor.getMonth()]} de ${cursor.getFullYear()}`}
+        subtitle={
+          view === "year" ? String(cursor.getFullYear()) : `${MONTHS[cursor.getMonth()]} de ${cursor.getFullYear()}`
+        }
         action={
           <Button
             onClick={() => {
@@ -155,6 +169,7 @@ function CalendarPage() {
         <div className="flex gap-1.5">
           {(
             [
+              ["year", "Ano"],
               ["month", "Mês"],
               ["week", "Semana"],
               ["day", "Dia"],
@@ -180,7 +195,9 @@ function CalendarPage() {
             size="icon"
             aria-label="Anterior"
             onClick={() => {
-              if (view === "month")
+              if (view === "year")
+                setCursor(new Date(cursor.getFullYear() - 1, cursor.getMonth(), 1));
+              else if (view === "month")
                 setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1));
               else setSelected(toISODate(addDays(fromISODate(selected), view === "week" ? -7 : -1)));
             }}
@@ -192,7 +209,9 @@ function CalendarPage() {
             size="icon"
             aria-label="Próximo"
             onClick={() => {
-              if (view === "month")
+              if (view === "year")
+                setCursor(new Date(cursor.getFullYear() + 1, cursor.getMonth(), 1));
+              else if (view === "month")
                 setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1));
               else setSelected(toISODate(addDays(fromISODate(selected), view === "week" ? 7 : 1)));
             }}
@@ -204,6 +223,16 @@ function CalendarPage() {
 
       {events.isLoading ? (
         <LoadingList rows={4} />
+      ) : view === "year" ? (
+        <YearView
+          year={cursor.getFullYear()}
+          marked={markedDays}
+          onPick={(iso) => {
+            setSelected(iso);
+            setCursor(fromISODate(iso));
+            setView("day");
+          }}
+        />
       ) : view === "month" ? (
         <div className="surface p-3">
           <div className="grid grid-cols-7 text-center text-[11px] text-muted-foreground">
@@ -466,3 +495,69 @@ function DayBlock({
 }
 
 export { EmptyState };
+
+function YearView({
+  year,
+  marked,
+  onPick,
+}: {
+  year: number;
+  marked: Map<string, string>;
+  onPick: (iso: string) => void;
+}) {
+  const today = toISODate();
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3">
+      {MONTHS.map((label, m) => {
+        const first = new Date(year, m, 1);
+        const total = new Date(year, m + 1, 0).getDate();
+        const cells: (number | null)[] = [
+          ...Array.from({ length: first.getDay() }, () => null),
+          ...Array.from({ length: total }, (_, i) => i + 1),
+        ];
+        const isCurrentMonth =
+          new Date().getFullYear() === year && new Date().getMonth() === m;
+        return (
+          <div key={label}>
+            <p
+              className={cn(
+                "mb-1.5 text-sm font-semibold",
+                isCurrentMonth ? "text-primary" : "text-foreground",
+              )}
+            >
+              {label}
+            </p>
+            <div className="grid grid-cols-7 gap-y-0.5 text-center text-[10px] text-muted-foreground">
+              {WEEKDAYS.map((w, i) => (
+                <span key={i}>{w[0]}</span>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-y-0.5 text-center">
+              {cells.map((day, i) => {
+                if (day === null) return <span key={`e${i}`} />;
+                const iso = toISODate(new Date(year, m, day));
+                const tone = marked.get(iso);
+                return (
+                  <button
+                    key={iso}
+                    onClick={() => onPick(iso)}
+                    className={cn(
+                      "num mx-auto flex size-5 items-center justify-center rounded-full text-[11px]",
+                      iso === today
+                        ? "bg-primary font-semibold text-primary-foreground"
+                        : tone
+                          ? `font-semibold ${tone}`
+                          : "text-foreground",
+                    )}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
