@@ -169,38 +169,50 @@ function DietPage() {
       return a + (opt?.kcal ?? m.kcal ?? 0);
     }, 0);
 
-  /** Ao concluir todas as refeições do dia, marca o hábito de dieta automaticamente. */
+  /** Mantém o hábito de dieta espelhando a conclusão das refeições do dia. */
   useEffect(() => {
-    if (habitMarked.current) return;
-    if (todayMeals.length === 0 || doneCount < todayMeals.length) return;
+    if (todayMeals.length === 0) return;
+    if (habits.isLoading || completions.isLoading) return;
+    const allDone = doneCount >= todayMeals.length;
     const candidates = (habits.data ?? []).filter(
       (h) =>
         h.category?.toLowerCase() === "dieta" || /diet|aliment|refei|nutri/i.test(h.name ?? ""),
     );
     if (candidates.length === 0) return;
-    habitMarked.current = true;
+    const key = `${today}:${allDone}:${candidates.map((h) => h.id).join(",")}`;
+    if (syncedRef.current === key) return;
+    syncedRef.current = key;
     void (async () => {
       const user_id = await currentUserId();
-      let marked = 0;
+      let changed = 0;
       for (const h of candidates) {
-        const { data: existing } = await db
-          .from("habit_completions")
-          .select("id")
-          .eq("habit_id", h.id)
-          .eq("date", today)
-          .maybeSingle();
-        if (existing) continue;
-        await db
-          .from("habit_completions")
-          .insert({ habit_id: h.id, date: today, value: h.target ?? 1, user_id });
-        marked += 1;
+        const done = (completions.data ?? []).find((c) => c.habit_id === h.id);
+        if (allDone && !done) {
+          const { error } = await db
+            .from("habit_completions")
+            .insert({ habit_id: h.id, date: today, value: h.target ?? 1, user_id });
+          if (!error) changed += 1;
+        } else if (!allDone && done && !isOptimisticId(done.id)) {
+          const { error } = await db.from("habit_completions").delete().eq("id", done.id);
+          if (!error) changed += 1;
+        }
       }
-      if (marked > 0) {
+      if (changed > 0) {
         qc.invalidateQueries({ queryKey: ["habit_completions"] });
-        toast.success("Todas as refeições concluídas — hábito de dieta marcado!");
+        if (allDone) toast.success("Todas as refeições concluídas — hábito de dieta marcado!");
       }
     })();
-  }, [doneCount, todayMeals.length, habits.data, today, qc]);
+  }, [
+    doneCount,
+    todayMeals.length,
+    habits.data,
+    habits.isLoading,
+    completions.data,
+    completions.isLoading,
+    today,
+    qc,
+  ]);
+
 
   function openNew() {
     setEditing(null);
