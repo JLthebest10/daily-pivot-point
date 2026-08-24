@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, Check, Play, Plus, Trash2 } from "lucide-react";
 import { useList, useRemove, useSave, currentUserId, db } from "@/lib/db";
 import { shortDate, toISODate } from "@/lib/format";
@@ -44,6 +44,7 @@ type Exercise = {
 };
 type SetRow = {
   id: string;
+  session_id: string;
   exercise_id: string;
   set_number: number;
   weight: number;
@@ -79,6 +80,8 @@ function WorkoutDetail() {
   const [started, setStarted] = useState(false);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const sessionIdRef = useRef<string | null>(null);
+  const sessionPromiseRef = useRef<Promise<string> | null>(null);
 
   const workout = (workouts.data ?? [])[0];
   const list = exercises.data ?? [];
@@ -92,6 +95,45 @@ function WorkoutDetail() {
     const prev = lastByExercise.get(s.exercise_id);
     if (!prev || s.date > prev.date || (s.date === prev.date && s.set_number > prev.set_number)) {
       lastByExercise.set(s.exercise_id, s);
+    }
+  }
+
+  /** Garante uma sessão válida antes de salvar qualquer série. */
+  async function ensureSession() {
+    if (sessionIdRef.current) return sessionIdRef.current;
+    if (sessionPromiseRef.current) return sessionPromiseRef.current;
+
+    sessionPromiseRef.current = (async () => {
+      const { data: existing, error: lookupError } = await db
+        .from("workout_sessions")
+        .select("id")
+        .eq("workout_id", id)
+        .eq("date", today)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (lookupError) throw lookupError;
+      if (existing?.id) {
+        sessionIdRef.current = existing.id;
+        return existing.id as string;
+      }
+
+      const user_id = await currentUserId();
+      const { data: created, error: createError } = await db
+        .from("workout_sessions")
+        .insert({ user_id, workout_id: id, date: today })
+        .select("id")
+        .single();
+      if (createError) throw createError;
+      sessionIdRef.current = created.id;
+      qc.invalidateQueries({ queryKey: ["workout_sessions"] });
+      return created.id as string;
+    })();
+
+    try {
+      return await sessionPromiseRef.current;
+    } finally {
+      sessionPromiseRef.current = null;
     }
   }
 
@@ -114,7 +156,9 @@ function WorkoutDetail() {
       return;
     }
     if (last) return;
+    const session_id = await ensureSession();
     await saveSet.mutateAsync({
+      session_id,
       exercise_id: exId,
       set_number: 1,
       weight,
@@ -133,11 +177,19 @@ function WorkoutDetail() {
     }
   }
 
-  function start() {
-    setStarted(true);
-    setStartedAt(Date.now());
-    setChecked({});
-    toast.success("Treino iniciado. Bom treino!");
+  async function start() {
+    setFinishing(true);
+    try {
+      await ensureSession();
+      setStarted(true);
+      setStartedAt(Date.now());
+      setChecked({});
+      toast.success("Treino iniciado. Bom treino!");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setFinishing(false);
+    }
   }
 
 
@@ -168,14 +220,14 @@ function WorkoutDetail() {
     try {
       await persistAllEntries();
       const user_id = await currentUserId();
+      const session_id = await ensureSession();
       const duration = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 60000)) : null;
 
-      const { error } = await db.from("workout_sessions").insert({
-        user_id,
-        workout_id: id,
-        date: today,
-        ...(duration ? { duration_min: duration } : {}),
-      });
+      const { error } = await db
+        .from("workout_sessions")
+        .update({ ...(duration ? { duration_min: duration } : {}) })
+        .eq("id", session_id)
+        .eq("user_id", user_id);
       if (error) throw error;
       const marked = await markWorkoutHabit(user_id);
       qc.invalidateQueries({ queryKey: ["workout_sessions"] });
@@ -212,7 +264,7 @@ function WorkoutDetail() {
               <Check className="size-4" /> Finalizar treino
             </Button>
           ) : (
-            <Button onClick={start}>
+            <Button onClick={start} disabled={finishing}>
               <Play className="size-4" /> Iniciar treino
             </Button>
           )
@@ -325,7 +377,9 @@ function WorkoutDetail() {
                   className="mt-3 flex items-end gap-2"
                   onSubmit={async (e) => {
                     e.preventDefault();
+                    const session_id = await ensureSession();
                     await saveSet.mutateAsync({
+                      session_id,
                       exercise_id: ex.id,
                       set_number: exSets.length + 1,
                       weight: Number(value.weight) || 0,
