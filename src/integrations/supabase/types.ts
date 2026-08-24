@@ -330,6 +330,7 @@ export type Database = {
           date: string
           id: string
           meal_id: string
+          option_id: string | null
           user_id: string
         }
         Insert: {
@@ -337,6 +338,7 @@ export type Database = {
           date?: string
           id?: string
           meal_id: string
+          option_id?: string | null
           user_id: string
         }
         Update: {
@@ -344,11 +346,60 @@ export type Database = {
           date?: string
           id?: string
           meal_id?: string
+          option_id?: string | null
           user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "meal_logs_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_logs_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "meal_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meal_options: {
+        Row: {
+          created_at: string
+          id: string
+          kcal: number | null
+          meal_id: string
+          name: string
+          note: string | null
+          order_index: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kcal?: number | null
+          meal_id: string
+          name: string
+          note?: string | null
+          order_index?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kcal?: number | null
+          meal_id?: string
+          name?: string
+          note?: string | null
+          order_index?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_options_meal_id_fkey"
             columns: ["meal_id"]
             isOneToOne: false
             referencedRelation: "meals"
@@ -599,6 +650,45 @@ export type Database = {
           date?: string
           id?: string
           note?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      store_debts: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          item: string
+          note: string | null
+          paid: boolean
+          paid_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          item: string
+          note?: string | null
+          paid?: boolean
+          paid_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          item?: string
+          note?: string | null
+          paid?: boolean
+          paid_at?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
