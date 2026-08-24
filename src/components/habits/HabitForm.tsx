@@ -71,10 +71,11 @@ export function HabitForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim() || form.days.length === 0) return;
+    const icon = form.icon.trim() || "⭐";
     await save.mutateAsync({
       ...(habit ? { id: habit.id } : {}),
       name: form.name.trim(),
-      icon: form.icon,
+      icon,
       category: form.category,
       color: form.color,
       days: form.days,
