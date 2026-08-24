@@ -367,6 +367,7 @@ function WorkoutDetail() {
                       </p>
                     )}
                   </div>
+                  {started && <RestTimer defaultSec={ex.rest_sec} />}
                   <Button
                     variant="ghost"
                     size="icon"
