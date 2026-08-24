@@ -36,6 +36,7 @@ import {
   StatCard,
 } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
+import { BankConnections } from "@/components/finance/BankConnections";
 
 export const Route = createFileRoute("/_authenticated/financas")({
   head: () => ({
@@ -62,6 +63,8 @@ export type Transaction = {
   amount: number;
   category: string;
   date: string;
+  source?: string | null;
+  payment_method?: string | null;
 };
 export type Purchase = {
   id: string;
