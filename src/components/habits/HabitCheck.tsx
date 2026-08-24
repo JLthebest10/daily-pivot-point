@@ -5,8 +5,11 @@ import { toast } from "sonner";
 import {
   currentUserId,
   db,
+  isOptimisticId,
+  newOptimisticId,
   optimisticDelete,
   optimisticInsert,
+  replaceOptimisticRow,
   restoreTable,
   type Row,
 } from "@/lib/db";
@@ -29,29 +32,41 @@ export function useToggleCompletion() {
       value?: number;
     }) => {
       if (completionId) {
-        const { error } = await db.from(TABLE).delete().eq("id", completionId);
+        const user_id = await currentUserId();
+        // O id pode ainda ser temporário: nesse caso apaga pelo hábito + data.
+        const query = isOptimisticId(completionId)
+          ? db.from(TABLE).delete().eq("habit_id", habitId).eq("date", date).eq("user_id", user_id)
+          : db.from(TABLE).delete().eq("id", completionId);
+        const { error } = await query;
         if (error) throw error;
-        return;
+        return null;
       }
       const user_id = await currentUserId();
-      const { error } = await db
+      const { data, error } = await db
         .from(TABLE)
-        .insert({ habit_id: habitId, date, value: value ?? 1, user_id });
+        .insert({ habit_id: habitId, date, value: value ?? 1, user_id })
+        .select()
+        .single();
       if (error) throw error;
+      return data;
     },
     // Marca/desmarca na hora; o backend confirma em segundo plano.
     onMutate: async (vars) => {
       await qc.cancelQueries({ queryKey: [TABLE] });
+      const tempId = newOptimisticId();
       const snapshots = vars.completionId
         ? optimisticDelete(qc, TABLE, vars.completionId)
         : optimisticInsert(qc, TABLE, {
-            id: `optimistic-${Math.random().toString(36).slice(2)}`,
+            id: tempId,
             habit_id: vars.habitId,
             date: vars.date,
             value: vars.value ?? 1,
             created_at: new Date().toISOString(),
           } as Row);
-      return { snapshots };
+      return { snapshots, tempId: vars.completionId ? undefined : tempId };
+    },
+    onSuccess: (data, _v, ctx) => {
+      if (ctx?.tempId && data) replaceOptimisticRow(qc, TABLE, ctx.tempId, data as Row);
     },
     onError: (e: Error, _v, ctx) => {
       if (ctx?.snapshots) restoreTable(qc, ctx.snapshots);
@@ -60,6 +75,7 @@ export function useToggleCompletion() {
     onSettled: () => qc.invalidateQueries({ queryKey: [TABLE] }),
   });
 }
+
 
 export function HabitCheck({
   checked,
