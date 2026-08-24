@@ -76,6 +76,7 @@ function WorkoutDetail() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", target_sets: "3", target_reps: "10", rest_sec: "60" });
   const [entry, setEntry] = useState<Record<string, { weight: string; reps: string }>>({});
+  const entryRef = useRef<Record<string, { weight: string; reps: string }>>({});
   const [finishing, setFinishing] = useState(false);
   const [started, setStarted] = useState(false);
   const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -146,29 +147,39 @@ function WorkoutDetail() {
     const reps = Number(value.reps);
     if (!value.weight && !value.reps) return;
     if (!Number.isFinite(weight) || !Number.isFinite(reps)) return;
-    const exSets = todaySets
-      .filter((s) => s.exercise_id === exId)
-      .sort((a, b) => a.set_number - b.set_number);
-    const last = exSets[exSets.length - 1];
-    if (last && !String(last.id).startsWith("optimistic-")) {
-      if (Number(last.weight) === weight && Number(last.reps) === reps) return;
-      await saveSet.mutateAsync({ id: last.id, weight, reps });
-      return;
-    }
-    if (last) return;
     const session_id = await ensureSession();
-    await saveSet.mutateAsync({
-      session_id,
-      exercise_id: exId,
-      set_number: 1,
-      weight,
-      reps,
-      date: today,
-    });
+    const { data: existing, error: lookupError } = await db
+      .from("exercise_sets")
+      .select("id, weight, reps")
+      .eq("session_id", session_id)
+      .eq("exercise_id", exId)
+      .order("set_number", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (lookupError) throw lookupError;
+
+    if (existing?.id) {
+      if (Number(existing.weight) === weight && Number(existing.reps) === reps) return;
+      const { error } = await db.from("exercise_sets").update({ weight, reps }).eq("id", existing.id);
+      if (error) throw error;
+    } else {
+      const user_id = await currentUserId();
+      const { error } = await db.from("exercise_sets").insert({
+        user_id,
+        session_id,
+        exercise_id: exId,
+        set_number: 1,
+        weight,
+        reps,
+        date: today,
+      });
+      if (error) throw error;
+    }
+    await qc.invalidateQueries({ queryKey: ["exercise_sets"] });
   }
 
   async function persistAllEntries() {
-    for (const [exId, value] of Object.entries(entry)) {
+    for (const [exId, value] of Object.entries(entryRef.current)) {
       try {
         await persistEntry(exId, value);
       } catch {
@@ -397,10 +408,12 @@ function WorkoutDetail() {
                       min={0}
                       aria-label="Peso em quilos"
                       value={value.weight}
-                      onChange={(e) =>
-                        setEntry({ ...entry, [ex.id]: { ...value, weight: e.target.value } })
-                      }
-                      onBlur={() => persistEntry(ex.id, value)}
+                      onChange={(e) => {
+                        const next = { ...value, weight: e.target.value };
+                        entryRef.current[ex.id] = next;
+                        setEntry((current) => ({ ...current, [ex.id]: next }));
+                      }}
+                      onBlur={() => persistEntry(ex.id, entryRef.current[ex.id] ?? value)}
                       className="h-9"
                     />
                   </label>
@@ -411,10 +424,12 @@ function WorkoutDetail() {
                       min={0}
                       aria-label="Repetições"
                       value={value.reps}
-                      onChange={(e) =>
-                        setEntry({ ...entry, [ex.id]: { ...value, reps: e.target.value } })
-                      }
-                      onBlur={() => persistEntry(ex.id, value)}
+                      onChange={(e) => {
+                        const next = { ...value, reps: e.target.value };
+                        entryRef.current[ex.id] = next;
+                        setEntry((current) => ({ ...current, [ex.id]: next }));
+                      }}
+                      onBlur={() => persistEntry(ex.id, entryRef.current[ex.id] ?? value)}
                       className="h-9"
                     />
                   </label>
