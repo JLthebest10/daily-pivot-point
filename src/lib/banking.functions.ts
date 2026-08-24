@@ -147,7 +147,7 @@ export const syncTransactions = createServerFn({ method: "POST" })
           .from("transactions")
           .select("external_id")
           .in("external_id", externalIds);
-        const known = new Set((existing ?? []).map((r: { external_id: string }) => r.external_id));
+        const known = new Set((existing ?? []).map((r) => r.external_id));
 
         const rows = txs
           .filter((t) => !known.has(`pluggy:${t.id}`))
