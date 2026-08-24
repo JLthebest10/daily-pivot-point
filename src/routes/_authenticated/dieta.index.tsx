@@ -381,7 +381,9 @@ function DietPage() {
                         label={o.kcal ? `${o.name} · ${o.kcal} kcal` : o.name}
                         active={selected === o.id}
                         disabled={!!log}
-                        onClick={() => setPicked({ ...picked, [meal.id]: o.id })}
+                        onClick={() =>
+                          setPicked({ ...picked, [meal.id]: selected === o.id ? null : o.id })
+                        }
                       />
                     ))}
                   </div>
