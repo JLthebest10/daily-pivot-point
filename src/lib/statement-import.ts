@@ -62,7 +62,7 @@ function build(
     amount: Math.abs(value),
     type,
     category: categorize(desc, type),
-    paymentMethod: paymentLabel(methodHint ?? desc),
+    paymentMethod: paymentLabel(desc) ?? paymentLabel(methodHint ?? null),
   };
 }
 
