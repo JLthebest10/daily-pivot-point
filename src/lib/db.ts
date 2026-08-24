@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -15,6 +15,8 @@ export type ListOptions = {
   lte?: [string, string];
   enabled?: boolean;
 };
+
+type CacheKey = Omit<ListOptions, "enabled">;
 
 export function useList<T = Row>(table: string, opts: ListOptions = {}) {
   const { enabled = true, ...key } = opts;
@@ -40,6 +42,79 @@ async function currentUserId() {
   return data.user.id;
 }
 
+/* ------------------------------------------------------------------ */
+/* Optimistic cache helpers                                            */
+/* ------------------------------------------------------------------ */
+
+/** A linha satisfaz os filtros usados por aquela query em cache? */
+function rowMatches(row: Record<string, unknown>, key: CacheKey) {
+  for (const [col, val] of Object.entries(key.eq ?? {})) {
+    if (col in row && row[col] !== val) return false;
+  }
+  if (key.gte && col_lt(row[key.gte[0]], key.gte[1])) return false;
+  if (key.lte && col_lt(key.lte[1], row[key.lte[0]])) return false;
+  return true;
+}
+
+function col_lt(a: unknown, b: unknown) {
+  if (a == null || b == null) return false;
+  return String(a) < String(b);
+}
+
+function sortRows(rows: Row[], key: CacheKey) {
+  if (!key.order) return rows;
+  const { column, ascending = true } = key.order;
+  return [...rows].sort((a, b) => {
+    const av = a[column],
+      bv = b[column];
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    const r = String(av) < String(bv) ? -1 : String(av) > String(bv) ? 1 : 0;
+    return ascending ? r : -r;
+  });
+}
+
+/** Aplica uma transformação imediata em todas as listas em cache da tabela. */
+export function patchTable(qc: QueryClient, table: string, apply: (rows: Row[], key: CacheKey) => Row[]) {
+  const snapshots = qc.getQueriesData<Row[]>({ queryKey: [table] });
+  for (const [queryKey, rows] of snapshots) {
+    if (!rows) continue;
+    const key = (queryKey[1] ?? {}) as CacheKey;
+    qc.setQueryData(queryKey, sortRows(apply(rows, key), key));
+  }
+  return snapshots;
+}
+
+/** Restaura o estado anterior das listas (rollback). */
+export function restoreTable(qc: QueryClient, snapshots: ReturnType<typeof patchTable>) {
+  for (const [queryKey, rows] of snapshots) qc.setQueryData(queryKey, rows);
+}
+
+export function optimisticInsert(qc: QueryClient, table: string, row: Row) {
+  return patchTable(qc, table, (rows, key) => (rowMatches(row, key) ? [...rows, row] : rows));
+}
+
+export function optimisticUpdate(
+  qc: QueryClient,
+  table: string,
+  id: string,
+  values: Record<string, unknown>,
+) {
+  return patchTable(qc, table, (rows) =>
+    rows.map((r) => (r.id === id ? ({ ...r, ...values } as Row) : r)),
+  );
+}
+
+export function optimisticDelete(qc: QueryClient, table: string, id: string) {
+  return patchTable(qc, table, (rows) => rows.filter((r) => r.id !== id));
+}
+
+const FAIL = "Não foi possível salvar. Tente novamente.";
+
+/* ------------------------------------------------------------------ */
+/* Mutations                                                           */
+/* ------------------------------------------------------------------ */
+
 export function useSave(table: string, message?: string) {
   const qc = useQueryClient();
   return useMutation({
@@ -59,11 +134,27 @@ export function useSave(table: string, message?: string) {
       if (error) throw error;
       return data;
     },
+    // Atualiza a interface antes da resposta do backend.
+    onMutate: async (values: Record<string, unknown>) => {
+      await qc.cancelQueries({ queryKey: [table] });
+      const { id, ...rest } = values as { id?: string };
+      const snapshots = id
+        ? optimisticUpdate(qc, table, id, rest)
+        : optimisticInsert(qc, table, {
+            ...rest,
+            id: `optimistic-${Math.random().toString(36).slice(2)}`,
+            created_at: new Date().toISOString(),
+          } as Row);
+      return { snapshots };
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.snapshots) restoreTable(qc, ctx.snapshots);
+      toast.error(e.message || FAIL);
+    },
     onSuccess: () => {
-      qc.invalidateQueries();
       if (message) toast.success(message);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => qc.invalidateQueries({ queryKey: [table] }),
   });
 }
 
@@ -74,11 +165,16 @@ export function useRemove(table: string, message = "Registro excluído") {
       const { error } = await db.from(table).delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries();
-      toast.success(message);
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: [table] });
+      return { snapshots: optimisticDelete(qc, table, id) };
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, _id, ctx) => {
+      if (ctx?.snapshots) restoreTable(qc, ctx.snapshots);
+      toast.error(e.message || FAIL);
+    },
+    onSuccess: () => toast.success(message),
+    onSettled: () => qc.invalidateQueries({ queryKey: [table] }),
   });
 }
 

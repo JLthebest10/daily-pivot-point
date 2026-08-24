@@ -3,7 +3,17 @@ import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Activity, Camera, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { currentUserId, db, useList, useRemove, useSave } from "@/lib/db";
+import {
+  currentUserId,
+  db,
+  optimisticDelete,
+  optimisticInsert,
+  restoreTable,
+  useList,
+  useRemove,
+  useSave,
+  type Row,
+} from "@/lib/db";
 import { WEEKDAYS, toISODate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,8 +98,25 @@ function useToggleMeal() {
         .insert({ meal_id: mealId, date, user_id, option_id: optionId ?? null });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries(),
-    onError: (e: Error) => toast.error(e.message),
+    // Check imediato na interface; persistência em segundo plano.
+    onMutate: async (vars) => {
+      await qc.cancelQueries({ queryKey: ["meal_logs"] });
+      const snapshots = vars.logId
+        ? optimisticDelete(qc, "meal_logs", vars.logId)
+        : optimisticInsert(qc, "meal_logs", {
+            id: `optimistic-${Math.random().toString(36).slice(2)}`,
+            meal_id: vars.mealId,
+            date: vars.date,
+            option_id: vars.optionId ?? null,
+            created_at: new Date().toISOString(),
+          } as Row);
+      return { snapshots };
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.snapshots) restoreTable(qc, ctx.snapshots);
+      toast.error(e.message || "Não foi possível salvar. Tente novamente.");
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["meal_logs"] }),
   });
 }
 
@@ -153,7 +180,7 @@ function DietPage() {
         marked += 1;
       }
       if (marked > 0) {
-        qc.invalidateQueries();
+        qc.invalidateQueries({ queryKey: ["habit_completions"] });
         toast.success("Todas as refeições concluídas — hábito de dieta marcado!");
       }
     })();
@@ -373,7 +400,7 @@ function DietPage() {
               days: form.days,
             })) as { id: string };
             await saveOptions(saved.id, form.options);
-            qc.invalidateQueries();
+            qc.invalidateQueries({ queryKey: ["meal_options"] });
             setOpen(false);
             setEditing(null);
             setForm(EMPTY);

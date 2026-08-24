@@ -69,7 +69,7 @@ function EvolutionPage() {
         .from("body_photos")
         .insert({ user_id, path, date: toISODate() });
       if (error) throw error;
-      qc.invalidateQueries();
+      qc.invalidateQueries({ queryKey: ["body_photos"] });
       toast.success("Foto salva!");
     } catch (e) {
       toast.error((e as Error).message);
@@ -86,7 +86,7 @@ function EvolutionPage() {
       toast.error(error.message);
       return;
     }
-    qc.invalidateQueries();
+    qc.invalidateQueries({ queryKey: ["body_photos"] });
     toast.success("Foto removida");
   }
 
