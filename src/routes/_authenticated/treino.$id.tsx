@@ -95,10 +95,8 @@ function WorkoutDetail() {
   /** Última série registrada de cada exercício (qualquer data) — mantém a carga anterior. */
   const lastByExercise = new Map<string, SetRow>();
   for (const s of history.data ?? []) {
-    const prev = lastByExercise.get(s.exercise_id);
-    if (!prev || s.created_at > prev.created_at) {
-      lastByExercise.set(s.exercise_id, s);
-    }
+    // A consulta já vem em created_at DESC; a primeira é a série mais recente.
+    if (!lastByExercise.has(s.exercise_id)) lastByExercise.set(s.exercise_id, s);
   }
 
   /** Garante uma sessão válida antes de salvar qualquer série. */
