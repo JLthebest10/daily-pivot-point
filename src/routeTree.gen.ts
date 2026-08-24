@@ -18,10 +18,12 @@ import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authen
 import { Route as AuthenticatedFinancasRouteImport } from './routes/_authenticated/financas'
 import { Route as AuthenticatedHojeRouteImport } from './routes/_authenticated/hoje'
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
+import { Route as AuthenticatedLojinhaRouteImport } from './routes/_authenticated/lojinha'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedProdutividadeRouteImport } from './routes/_authenticated/produtividade'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedDietaIndexRouteImport } from './routes/_authenticated/dieta.index'
+import { Route as AuthenticatedDietaConsistenciaRouteImport } from './routes/_authenticated/dieta.consistencia'
 import { Route as AuthenticatedDietaEvolucaoRouteImport } from './routes/_authenticated/dieta.evolucao'
 import { Route as AuthenticatedHabitosIndexRouteImport } from './routes/_authenticated/habitos.index'
 import { Route as AuthenticatedHabitosIdRouteImport } from './routes/_authenticated/habitos.$id'
@@ -73,6 +75,11 @@ const AuthenticatedInsightsRoute = AuthenticatedInsightsRouteImport.update({
   path: '/insights',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLojinhaRoute = AuthenticatedLojinhaRouteImport.update({
+  id: '/lojinha',
+  path: '/lojinha',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
   id: '/metas',
   path: '/metas',
@@ -94,6 +101,12 @@ const AuthenticatedDietaIndexRoute = AuthenticatedDietaIndexRouteImport.update({
   path: '/dieta/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDietaConsistenciaRoute =
+  AuthenticatedDietaConsistenciaRouteImport.update({
+    id: '/dieta/consistencia',
+    path: '/dieta/consistencia',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDietaEvolucaoRoute =
   AuthenticatedDietaEvolucaoRouteImport.update({
     id: '/dieta/evolucao',
@@ -132,9 +145,11 @@ export interface FileRoutesByFullPath {
   '/financas': typeof AuthenticatedFinancasRoute
   '/hoje': typeof AuthenticatedHojeRoute
   '/insights': typeof AuthenticatedInsightsRoute
+  '/lojinha': typeof AuthenticatedLojinhaRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/produtividade': typeof AuthenticatedProdutividadeRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
+  '/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
@@ -151,9 +166,11 @@ export interface FileRoutesByTo {
   '/financas': typeof AuthenticatedFinancasRoute
   '/hoje': typeof AuthenticatedHojeRoute
   '/insights': typeof AuthenticatedInsightsRoute
+  '/lojinha': typeof AuthenticatedLojinhaRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/produtividade': typeof AuthenticatedProdutividadeRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
+  '/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
@@ -172,9 +189,11 @@ export interface FileRoutesById {
   '/_authenticated/financas': typeof AuthenticatedFinancasRoute
   '/_authenticated/hoje': typeof AuthenticatedHojeRoute
   '/_authenticated/insights': typeof AuthenticatedInsightsRoute
+  '/_authenticated/lojinha': typeof AuthenticatedLojinhaRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/produtividade': typeof AuthenticatedProdutividadeRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
+  '/_authenticated/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/_authenticated/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/_authenticated/treino/$id': typeof AuthenticatedTreinoIdRoute
@@ -193,9 +212,11 @@ export interface FileRouteTypes {
     | '/financas'
     | '/hoje'
     | '/insights'
+    | '/lojinha'
     | '/metas'
     | '/produtividade'
     | '/tarefas'
+    | '/dieta/consistencia'
     | '/dieta/evolucao'
     | '/habitos/$id'
     | '/treino/$id'
@@ -212,9 +233,11 @@ export interface FileRouteTypes {
     | '/financas'
     | '/hoje'
     | '/insights'
+    | '/lojinha'
     | '/metas'
     | '/produtividade'
     | '/tarefas'
+    | '/dieta/consistencia'
     | '/dieta/evolucao'
     | '/habitos/$id'
     | '/treino/$id'
@@ -232,9 +255,11 @@ export interface FileRouteTypes {
     | '/_authenticated/financas'
     | '/_authenticated/hoje'
     | '/_authenticated/insights'
+    | '/_authenticated/lojinha'
     | '/_authenticated/metas'
     | '/_authenticated/produtividade'
     | '/_authenticated/tarefas'
+    | '/_authenticated/dieta/consistencia'
     | '/_authenticated/dieta/evolucao'
     | '/_authenticated/habitos/$id'
     | '/_authenticated/treino/$id'
@@ -315,6 +340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInsightsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/lojinha': {
+      id: '/_authenticated/lojinha'
+      path: '/lojinha'
+      fullPath: '/lojinha'
+      preLoaderRoute: typeof AuthenticatedLojinhaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/metas': {
       id: '/_authenticated/metas'
       path: '/metas'
@@ -341,6 +373,13 @@ declare module '@tanstack/react-router' {
       path: '/dieta'
       fullPath: '/dieta/'
       preLoaderRoute: typeof AuthenticatedDietaIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dieta/consistencia': {
+      id: '/_authenticated/dieta/consistencia'
+      path: '/dieta/consistencia'
+      fullPath: '/dieta/consistencia'
+      preLoaderRoute: typeof AuthenticatedDietaConsistenciaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dieta/evolucao': {
@@ -387,9 +426,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFinancasRoute: typeof AuthenticatedFinancasRoute
   AuthenticatedHojeRoute: typeof AuthenticatedHojeRoute
   AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
+  AuthenticatedLojinhaRoute: typeof AuthenticatedLojinhaRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedProdutividadeRoute: typeof AuthenticatedProdutividadeRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
+  AuthenticatedDietaConsistenciaRoute: typeof AuthenticatedDietaConsistenciaRoute
   AuthenticatedDietaEvolucaoRoute: typeof AuthenticatedDietaEvolucaoRoute
   AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
   AuthenticatedTreinoIdRoute: typeof AuthenticatedTreinoIdRoute
@@ -404,9 +445,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFinancasRoute: AuthenticatedFinancasRoute,
   AuthenticatedHojeRoute: AuthenticatedHojeRoute,
   AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
+  AuthenticatedLojinhaRoute: AuthenticatedLojinhaRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedProdutividadeRoute: AuthenticatedProdutividadeRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
+  AuthenticatedDietaConsistenciaRoute: AuthenticatedDietaConsistenciaRoute,
   AuthenticatedDietaEvolucaoRoute: AuthenticatedDietaEvolucaoRoute,
   AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
   AuthenticatedTreinoIdRoute: AuthenticatedTreinoIdRoute,

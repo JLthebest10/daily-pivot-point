@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Check, Play, Plus, Trash2 } from "lucide-react";
 import { useList, useRemove, useSave, currentUserId, db } from "@/lib/db";
-import { toISODate } from "@/lib/format";
+import { shortDate, toISODate } from "@/lib/format";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,9 @@ function WorkoutDetail() {
     order: { column: "order_index" },
   });
   const sets = useList<SetRow>("exercise_sets", { eq: { date: today } });
+  const history = useList<SetRow>("exercise_sets", {
+    order: { column: "date", ascending: false },
+  });
   const habits = useList<HabitRow>("habits", { eq: { archived: false } });
   const saveExercise = useSave("exercises", "Exercício adicionado");
   const removeExercise = useRemove("exercises", "Exercício removido");
@@ -82,6 +85,15 @@ function WorkoutDetail() {
   const todaySets = (sets.data ?? []).filter((s) => list.some((e) => e.id === s.exercise_id));
   const doneCount = list.filter((e) => checked[e.id]).length;
   const progress = list.length ? (doneCount / list.length) * 100 : 0;
+
+  /** Última série registrada de cada exercício (qualquer data) — mantém a carga anterior. */
+  const lastByExercise = new Map<string, SetRow>();
+  for (const s of history.data ?? []) {
+    const prev = lastByExercise.get(s.exercise_id);
+    if (!prev || s.date > prev.date || (s.date === prev.date && s.set_number > prev.set_number)) {
+      lastByExercise.set(s.exercise_id, s);
+    }
+  }
 
   function start() {
     setStarted(true);
@@ -200,7 +212,13 @@ function WorkoutDetail() {
             const exSets = todaySets
               .filter((s) => s.exercise_id === ex.id)
               .sort((a, b) => a.set_number - b.set_number);
-            const value = entry[ex.id] ?? { weight: "", reps: String(ex.target_reps) };
+            const last = lastByExercise.get(ex.id);
+            const value =
+              entry[ex.id] ??
+              ({
+                weight: last ? String(Number(last.weight)) : "",
+                reps: String(last?.reps ?? ex.target_reps),
+              } as { weight: string; reps: string });
             const isDone = !!checked[ex.id];
             return (
               <li key={ex.id} className="surface px-4 py-4">
@@ -224,6 +242,11 @@ function WorkoutDetail() {
                     <p className="text-xs text-muted-foreground">
                       {ex.target_sets}×{ex.target_reps} · descanso {ex.rest_sec}s
                     </p>
+                    {last && (
+                      <p className="num mt-0.5 text-xs text-muted-foreground">
+                        Última vez: {Number(last.weight)}kg × {last.reps} ({shortDate(last.date)})
+                      </p>
+                    )}
                   </div>
                   <Button
                     variant="ghost"

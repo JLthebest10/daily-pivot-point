@@ -6,6 +6,7 @@ export const IMPORTANCE: {
   dot: string;
   border: string;
   text: string;
+  rank: number;
 }[] = [
   {
     value: "normal",
@@ -13,6 +14,7 @@ export const IMPORTANCE: {
     dot: "bg-primary",
     border: "border-primary",
     text: "text-primary",
+    rank: 1,
   },
   {
     value: "importante",
@@ -20,6 +22,7 @@ export const IMPORTANCE: {
     dot: "bg-warning",
     border: "border-warning",
     text: "text-warning",
+    rank: 2,
   },
   {
     value: "muito",
@@ -27,6 +30,7 @@ export const IMPORTANCE: {
     dot: "bg-destructive",
     border: "border-destructive",
     text: "text-destructive",
+    rank: 3,
   },
 ];
 
