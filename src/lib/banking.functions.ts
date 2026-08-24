@@ -192,3 +192,54 @@ export const syncTransactions = createServerFn({ method: "POST" })
 
     return { imported, connections: connections.length };
   });
+
+const importedTx = z.object({
+  externalId: z.string().min(1),
+  date: z.string().min(8),
+  description: z.string().min(1),
+  amount: z.number().positive(),
+  type: z.enum(["income", "expense"]),
+  category: z.string().min(1),
+  paymentMethod: z.string().nullable().optional(),
+});
+
+export const importStatement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ transactions: z.array(importedTx).min(1).max(2000) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const externalIds = data.transactions.map((t) => t.externalId);
+    const known = new Set<string>();
+    for (let i = 0; i < externalIds.length; i += 200) {
+      const { data: existing } = await context.supabase
+        .from("transactions")
+        .select("external_id")
+        .in("external_id", externalIds.slice(i, i + 200));
+      for (const row of existing ?? []) if (row.external_id) known.add(row.external_id);
+    }
+
+    const rows = data.transactions
+      .filter((t) => !known.has(t.externalId))
+      .map((t) => ({
+        user_id: context.userId,
+        type: t.type,
+        amount: t.amount,
+        date: t.date,
+        category: t.category,
+        description: t.description,
+        payment_method: t.paymentMethod ?? null,
+        external_id: t.externalId,
+        source: "import",
+      }));
+
+    let imported = 0;
+    for (let i = 0; i < rows.length; i += 200) {
+      const chunk = rows.slice(i, i + 200);
+      const { error } = await context.supabase.from("transactions").insert(chunk);
+      if (error) throw new Error(error.message);
+      imported += chunk.length;
+    }
+
+    return { imported, skipped: data.transactions.length - rows.length };
+  });
