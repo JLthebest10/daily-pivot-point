@@ -36,6 +36,7 @@ import {
   StatCard,
 } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
+import { BankConnections } from "@/components/finance/BankConnections";
 
 export const Route = createFileRoute("/_authenticated/financas")({
   head: () => ({
@@ -62,6 +63,8 @@ export type Transaction = {
   amount: number;
   category: string;
   date: string;
+  source?: string | null;
+  payment_method?: string | null;
 };
 export type Purchase = {
   id: string;
@@ -83,7 +86,7 @@ const PIE = [
   "var(--color-chart-5)",
 ];
 
-type Tab = "resumo" | "lancamentos" | "compras" | "reserva";
+type Tab = "resumo" | "lancamentos" | "contas" | "compras" | "reserva";
 
 function FinancePage() {
   const [tab, setTab] = useState<Tab>("resumo");
@@ -163,6 +166,7 @@ function FinancePage() {
           [
             ["resumo", "Resumo"],
             ["lancamentos", "Lançamentos"],
+            ["contas", "Contas"],
             ["compras", "Compras"],
             ["reserva", "Reserva"],
           ] as const
@@ -262,9 +266,17 @@ function FinancePage() {
             {rows.map((r) => (
               <li key={r.id} className="surface flex items-center gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">{r.description}</p>
+                  <p className="flex items-center gap-1.5 truncate text-sm">
+                    <span className="truncate">{r.description}</span>
+                    {r.source && r.source !== "manual" && (
+                      <span className="shrink-0 rounded-full border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                        importado
+                      </span>
+                    )}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(r.date).toLocaleDateString("pt-BR")} · {r.category}
+                    {r.payment_method ? ` · ${r.payment_method}` : ""}
                   </p>
                 </div>
                 <span
@@ -288,6 +300,8 @@ function FinancePage() {
             ))}
           </ul>
         ))}
+
+      {tab === "contas" && <BankConnections />}
 
       {tab === "compras" && (
         <div className="space-y-3">
