@@ -301,6 +301,8 @@ function FinancePage() {
           </ul>
         ))}
 
+      {tab === "contas" && <BankConnections />}
+
       {tab === "compras" && (
         <div className="space-y-3">
           <SectionTitle
