@@ -64,7 +64,10 @@ function WorkoutDetail() {
     eq: { workout_id: id },
     order: { column: "order_index" },
   });
-  const sets = useList<SetRow>("exercise_sets", { eq: { date: today } });
+  const sets = useList<SetRow>("exercise_sets", {
+    eq: { date: today },
+    order: { column: "created_at", ascending: true },
+  });
   const history = useList<SetRow>("exercise_sets", {
     order: { column: "created_at", ascending: false },
   });
