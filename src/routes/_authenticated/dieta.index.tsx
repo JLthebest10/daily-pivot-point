@@ -87,30 +87,41 @@ function useToggleMeal() {
       logId?: string;
       optionId?: string | null;
     }) => {
-      if (logId) {
-        const { error } = await db.from("meal_logs").delete().eq("id", logId);
-        if (error) throw error;
-        return;
-      }
       const user_id = await currentUserId();
-      const { error } = await db
+      if (logId) {
+        // Id temporário: apaga pela refeição + data em vez do id inválido.
+        const query = isOptimisticId(logId)
+          ? db.from("meal_logs").delete().eq("meal_id", mealId).eq("date", date).eq("user_id", user_id)
+          : db.from("meal_logs").delete().eq("id", logId);
+        const { error } = await query;
+        if (error) throw error;
+        return null;
+      }
+      const { data, error } = await db
         .from("meal_logs")
-        .insert({ meal_id: mealId, date, user_id, option_id: optionId ?? null });
+        .insert({ meal_id: mealId, date, user_id, option_id: optionId ?? null })
+        .select()
+        .single();
       if (error) throw error;
+      return data;
     },
     // Check imediato na interface; persistência em segundo plano.
     onMutate: async (vars) => {
       await qc.cancelQueries({ queryKey: ["meal_logs"] });
+      const tempId = newOptimisticId();
       const snapshots = vars.logId
         ? optimisticDelete(qc, "meal_logs", vars.logId)
         : optimisticInsert(qc, "meal_logs", {
-            id: `optimistic-${Math.random().toString(36).slice(2)}`,
+            id: tempId,
             meal_id: vars.mealId,
             date: vars.date,
             option_id: vars.optionId ?? null,
             created_at: new Date().toISOString(),
           } as Row);
-      return { snapshots };
+      return { snapshots, tempId: vars.logId ? undefined : tempId };
+    },
+    onSuccess: (data, _v, ctx) => {
+      if (ctx?.tempId && data) replaceOptimisticRow(qc, "meal_logs", ctx.tempId, data as Row);
     },
     onError: (e: Error, _v, ctx) => {
       if (ctx?.snapshots) restoreTable(qc, ctx.snapshots);
@@ -119,6 +130,7 @@ function useToggleMeal() {
     onSettled: () => qc.invalidateQueries({ queryKey: ["meal_logs"] }),
   });
 }
+
 
 function DietPage() {
   const today = toISODate();
