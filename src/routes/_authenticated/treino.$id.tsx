@@ -212,7 +212,13 @@ function WorkoutDetail() {
             const exSets = todaySets
               .filter((s) => s.exercise_id === ex.id)
               .sort((a, b) => a.set_number - b.set_number);
-            const value = entry[ex.id] ?? { weight: "", reps: String(ex.target_reps) };
+            const last = lastByExercise.get(ex.id);
+            const value =
+              entry[ex.id] ??
+              ({
+                weight: last ? String(Number(last.weight)) : "",
+                reps: String(last?.reps ?? ex.target_reps),
+              } as { weight: string; reps: string });
             const isDone = !!checked[ex.id];
             return (
               <li key={ex.id} className="surface px-4 py-4">
