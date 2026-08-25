@@ -737,6 +737,39 @@ export type Database = {
         }
         Relationships: []
       }
+      shopping_items: {
+        Row: {
+          bought: boolean
+          created_at: string
+          id: string
+          name: string
+          note: string | null
+          order_index: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bought?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          note?: string | null
+          order_index?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bought?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          note?: string | null
+          order_index?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       store_debts: {
         Row: {
           amount: number
