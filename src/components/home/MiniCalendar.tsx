@@ -39,8 +39,7 @@ export function MiniCalendar({ events, tasks }: { events: Item[]; tasks: Item[] 
     () =>
       [...events, ...tasks]
         .filter((e) => e.date >= today)
-        .sort((a, b) => (a.date + (a.time ?? "")).localeCompare(b.date + (b.time ?? "")))
-        .slice(0, 4),
+        .sort((a, b) => (a.date + (a.time ?? "")).localeCompare(b.date + (b.time ?? ""))),
     [events, tasks, today],
   );
 
