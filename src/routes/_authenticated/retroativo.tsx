@@ -121,12 +121,11 @@ function RetroPage() {
                     checked={!!c}
                     label={h.name}
                     onToggle={() =>
-                      toggleHabit.mutate({
-                        habitId: h.id,
-                        date,
-                        completionId: c?.id,
-                        value: h.target,
-                      })
+                      toggleHabit.mutate(
+                        c
+                          ? { habitId: h.id, date, completionId: c.id, value: h.target }
+                          : { habitId: h.id, date, value: h.target },
+                      )
                     }
                   />
                 </li>
