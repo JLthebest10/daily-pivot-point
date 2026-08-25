@@ -21,6 +21,7 @@ import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedLojinhaRouteImport } from './routes/_authenticated/lojinha'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedProdutividadeRouteImport } from './routes/_authenticated/produtividade'
+import { Route as AuthenticatedRetroativoRouteImport } from './routes/_authenticated/retroativo'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedDietaIndexRouteImport } from './routes/_authenticated/dieta.index'
 import { Route as AuthenticatedDietaConsistenciaRouteImport } from './routes/_authenticated/dieta.consistencia'
@@ -91,6 +92,11 @@ const AuthenticatedProdutividadeRoute =
     path: '/produtividade',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRetroativoRoute = AuthenticatedRetroativoRouteImport.update({
+  id: '/retroativo',
+  path: '/retroativo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTarefasRoute = AuthenticatedTarefasRouteImport.update({
   id: '/tarefas',
   path: '/tarefas',
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/lojinha': typeof AuthenticatedLojinhaRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/produtividade': typeof AuthenticatedProdutividadeRoute
+  '/retroativo': typeof AuthenticatedRetroativoRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/lojinha': typeof AuthenticatedLojinhaRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/produtividade': typeof AuthenticatedProdutividadeRoute
+  '/retroativo': typeof AuthenticatedRetroativoRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/_authenticated/lojinha': typeof AuthenticatedLojinhaRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/produtividade': typeof AuthenticatedProdutividadeRoute
+  '/_authenticated/retroativo': typeof AuthenticatedRetroativoRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/_authenticated/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/_authenticated/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
     | '/lojinha'
     | '/metas'
     | '/produtividade'
+    | '/retroativo'
     | '/tarefas'
     | '/dieta/consistencia'
     | '/dieta/evolucao'
@@ -236,6 +246,7 @@ export interface FileRouteTypes {
     | '/lojinha'
     | '/metas'
     | '/produtividade'
+    | '/retroativo'
     | '/tarefas'
     | '/dieta/consistencia'
     | '/dieta/evolucao'
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/_authenticated/lojinha'
     | '/_authenticated/metas'
     | '/_authenticated/produtividade'
+    | '/_authenticated/retroativo'
     | '/_authenticated/tarefas'
     | '/_authenticated/dieta/consistencia'
     | '/_authenticated/dieta/evolucao'
@@ -361,6 +373,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProdutividadeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/retroativo': {
+      id: '/_authenticated/retroativo'
+      path: '/retroativo'
+      fullPath: '/retroativo'
+      preLoaderRoute: typeof AuthenticatedRetroativoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tarefas': {
       id: '/_authenticated/tarefas'
       path: '/tarefas'
@@ -429,6 +448,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLojinhaRoute: typeof AuthenticatedLojinhaRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedProdutividadeRoute: typeof AuthenticatedProdutividadeRoute
+  AuthenticatedRetroativoRoute: typeof AuthenticatedRetroativoRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedDietaConsistenciaRoute: typeof AuthenticatedDietaConsistenciaRoute
   AuthenticatedDietaEvolucaoRoute: typeof AuthenticatedDietaEvolucaoRoute
@@ -448,6 +468,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLojinhaRoute: AuthenticatedLojinhaRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedProdutividadeRoute: AuthenticatedProdutividadeRoute,
+  AuthenticatedRetroativoRoute: AuthenticatedRetroativoRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedDietaConsistenciaRoute: AuthenticatedDietaConsistenciaRoute,
   AuthenticatedDietaEvolucaoRoute: AuthenticatedDietaEvolucaoRoute,
