@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
@@ -99,6 +99,17 @@ function SettingsPage() {
           Salvar
         </Button>
       </form>
+
+      <section className="mt-8">
+        <SectionTitle>Registros</SectionTitle>
+        <Link to="/retroativo" className="surface block px-4 py-4">
+          <p className="text-sm font-medium">Marcar retroativo</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Terminou o dia depois da meia-noite? Marque hábitos e tarefas de dias anteriores e
+            atualize o histórico de produtividade.
+          </p>
+        </Link>
+      </section>
 
       <section className="mt-8">
         <SectionTitle>Aparência</SectionTitle>
