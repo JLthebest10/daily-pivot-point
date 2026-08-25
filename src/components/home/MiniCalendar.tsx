@@ -60,6 +60,7 @@ export function MiniCalendar({ events, tasks }: { events: Item[]; tasks: Item[] 
             <Link
               key={iso}
               to="/calendario"
+              search={{ date: iso }}
               className={cn(
                 "flex flex-col items-center rounded-lg py-1.5 text-xs transition-colors",
                 isToday ? "bg-primary text-primary-foreground" : "hover:bg-muted",
