@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { addDays, startOfWeek, toISODate, WEEKDAYS, shortDate, relativeDays } from "@/lib/format";
 import { importanceOf } from "@/lib/importance";
+import { holidaysOn } from "@/lib/holidays";
 
 type Item = {
   id: string;
@@ -65,7 +66,15 @@ export function MiniCalendar({ events, tasks }: { events: Item[]; tasks: Item[] 
                 d.getMonth() !== new Date().getMonth() && !isToday && "text-muted-foreground",
               )}
             >
-              <span className="num">{d.getDate()}</span>
+              <span
+                className={cn(
+                  "num",
+                  holidaysOn(iso).length > 0 && !isToday && "text-destructive",
+                )}
+                title={holidaysOn(iso).map((h) => h.name).join(" · ")}
+              >
+                {d.getDate()}
+              </span>
               <span className="mt-1 flex h-1 gap-0.5">
                 {marks?.dots.slice(0, 3).map((dot, i) => (
                   <span
