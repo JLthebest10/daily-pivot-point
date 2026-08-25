@@ -39,8 +39,7 @@ export function MiniCalendar({ events, tasks }: { events: Item[]; tasks: Item[] 
     () =>
       [...events, ...tasks]
         .filter((e) => e.date >= today)
-        .sort((a, b) => (a.date + (a.time ?? "")).localeCompare(b.date + (b.time ?? "")))
-        .slice(0, 4),
+        .sort((a, b) => (a.date + (a.time ?? "")).localeCompare(b.date + (b.time ?? ""))),
     [events, tasks, today],
   );
 
@@ -101,7 +100,9 @@ export function MiniCalendar({ events, tasks }: { events: Item[]; tasks: Item[] 
         {upcoming.length === 0 ? (
           <p className="text-xs text-muted-foreground">Nenhum compromisso futuro.</p>
         ) : (
-          <ul className="space-y-2">
+          <ul
+            className="max-h-[8.5rem] space-y-2 overflow-y-auto pr-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             {upcoming.map((e) => {
               const level = importanceOf(e.importance);
               return (
