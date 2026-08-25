@@ -83,9 +83,19 @@ type TaskRow = {
 type View = "year" | "month" | "week" | "day";
 
 function CalendarPage() {
-  const [cursor, setCursor] = useState(new Date());
-  const [view, setView] = useState<View>("month");
-  const [selected, setSelected] = useState(toISODate());
+  const { date: searchDate } = Route.useSearch();
+  const [cursor, setCursor] = useState(() => (searchDate ? fromISODate(searchDate) : new Date()));
+  const [view, setView] = useState<View>(searchDate ? "day" : "month");
+  const [selected, setSelected] = useState(searchDate ?? toISODate());
+
+  // When the ?date= search param changes (e.g. clicking a day in the Mini
+  // Calendar on /hoje), jump to that exact day instead of just the month.
+  useEffect(() => {
+    if (!searchDate) return;
+    setSelected(searchDate);
+    setCursor(fromISODate(searchDate));
+    setView("day");
+  }, [searchDate]);
   const [open, setOpen] = useState(false);
   const events = useList<EventRow>("events", { order: { column: "date" } });
   const tasks = useList<TaskRow>("tasks", { order: { column: "due_date" } });
