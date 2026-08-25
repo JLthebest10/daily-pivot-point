@@ -24,6 +24,7 @@ import {
 import { EmptyState, Field, FormModal, LoadingList, PageHeader } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
 import { IMPORTANCE, importanceOf } from "@/lib/importance";
+import { holidaysOn } from "@/lib/holidays";
 
 export const Route = createFileRoute("/_authenticated/calendario")({
   head: () => ({
@@ -261,7 +262,12 @@ function CalendarPage() {
                     iso === selected && iso !== toISODate() && "bg-muted",
                   )}
                 >
-                  <span className="num">{d.getDate()}</span>
+                  <span
+                    className={cn("num", holidaysOn(iso).length > 0 && "text-destructive")}
+                    title={holidaysOn(iso).map((h) => h.name).join(" · ")}
+                  >
+                    {d.getDate()}
+                  </span>
                   <span className="mt-1 flex gap-0.5">
                     {items.slice(0, 3).map((ev) => (
                       <span
@@ -437,6 +443,18 @@ function DayBlock({
   return (
     <div className="surface p-4">
       <h2 className="text-sm font-medium capitalize">{longDate(date)}</h2>
+      {holidaysOn(toISODate(date)).length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {holidaysOn(toISODate(date)).map((h) => (
+            <span
+              key={h.name}
+              className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive"
+            >
+              {h.name}
+            </span>
+          ))}
+        </div>
+      )}
       {items.length === 0 && tasks.length === 0 ? (
         <p className="mt-2 text-sm text-muted-foreground">Nada agendado.</p>
       ) : items.length === 0 ? null : (
@@ -537,17 +555,21 @@ function YearView({
                 if (day === null) return <span key={`e${i}`} />;
                 const iso = toISODate(new Date(year, m, day));
                 const tone = marked.get(iso);
+                const holiday = holidaysOn(iso).length > 0;
                 return (
                   <button
                     key={iso}
                     onClick={() => onPick(iso)}
+                    title={holidaysOn(iso).map((h) => h.name).join(" · ")}
                     className={cn(
                       "num mx-auto flex size-5 items-center justify-center rounded-full text-[11px]",
                       iso === today
                         ? "bg-primary font-semibold text-primary-foreground"
-                        : tone
-                          ? `font-semibold ${tone}`
-                          : "text-foreground",
+                        : holiday
+                          ? "font-semibold text-destructive"
+                          : tone
+                            ? `font-semibold ${tone}`
+                            : "text-foreground",
                     )}
                   >
                     {day}
