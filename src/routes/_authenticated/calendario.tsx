@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { z } from "zod";
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useList, useRemove, useSave } from "@/lib/db";
 import {
@@ -27,6 +28,9 @@ import { IMPORTANCE, importanceOf } from "@/lib/importance";
 import { holidaysOn } from "@/lib/holidays";
 
 export const Route = createFileRoute("/_authenticated/calendario")({
+  validateSearch: z.object({
+    date: z.string().optional(),
+  }),
   head: () => ({
     meta: [
       { title: "Calendário — Life Hub" },
