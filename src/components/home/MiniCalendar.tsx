@@ -101,7 +101,7 @@ export function MiniCalendar({ events, tasks }: { events: Item[]; tasks: Item[] 
           <p className="text-xs text-muted-foreground">Nenhum compromisso futuro.</p>
         ) : (
           <ul
-            className="max-h-[8.5rem] space-y-2 overflow-y-auto pr-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="max-h-[5.5rem] space-y-2 overflow-y-auto pr-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {upcoming.map((e) => {
               const level = importanceOf(e.importance);
