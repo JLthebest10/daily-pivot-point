@@ -91,14 +91,12 @@ function HabitDetail() {
         });
 
   // heatmap: left→right, top row first
-  const cells: { iso: string; done: boolean; scheduled: boolean; future: boolean }[] = [];
-  for (let d = new Date(rangeStart); d <= now; d = addDays(d, 1)) {
-    const iso = toISODate(d);
+  const cells: { iso: string; done: boolean; scheduled: boolean }[] = [];
+  for (let iso = rangeStartISO; iso <= todayISO; iso = toISODate(addDays(fromISODate(iso), 1))) {
     cells.push({
       iso,
       done: doneSet.has(iso),
-      scheduled: isScheduled(habit, d),
-      future: iso > todayISO,
+      scheduled: isScheduled(habit, fromISODate(iso)),
     });
   }
 
