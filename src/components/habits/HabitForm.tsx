@@ -76,7 +76,8 @@ export function HabitForm({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name.trim() || form.days.length === 0) return;
+    const interval = form.schedule_type === "interval";
+    if (!form.name.trim() || (!interval && form.days.length === 0)) return;
     const icon = form.icon.trim() || "⭐";
     await save.mutateAsync({
       ...(habit ? { id: habit.id } : {}),
@@ -84,14 +85,18 @@ export function HabitForm({
       icon,
       category: form.category,
       color: form.color,
-      days: form.days,
+      days: interval ? [0, 1, 2, 3, 4, 5, 6] : form.days,
       time: form.time || null,
       target: form.target || 1,
       unit: form.unit || null,
       note: form.note || null,
+      schedule_type: interval ? "interval" : "weekly",
+      interval_days: 2,
+      anchor_date: interval ? form.anchor_date || toISODate() : null,
     });
     onOpenChange(false);
   }
+
 
   return (
     <FormModal
