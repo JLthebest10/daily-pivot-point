@@ -59,10 +59,13 @@ export function HabitForm({
             target: Number(habit.target),
             unit: habit.unit ?? "",
             note: habit.note ?? "",
+            schedule_type: habit.schedule_type === "interval" ? "interval" : "weekly",
+            anchor_date: habit.anchor_date ?? "",
           }
         : { ...empty },
     );
   }, [open, habit]);
+
 
   function toggleDay(d: number) {
     setForm((f) => ({
