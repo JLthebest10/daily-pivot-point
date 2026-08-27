@@ -169,25 +169,59 @@ export function HabitForm({
           </Field>
         </div>
 
-        <Field label="Dias da semana">
+        <Field label="Frequência">
           <div className="flex gap-1.5">
-            {WEEKDAYS.map((d, i) => (
+            {[
+              ["weekly", "Dias da semana"],
+              ["interval", "Dia sim, dia não"],
+            ].map(([v, label]) => (
               <button
-                key={d}
+                key={v}
                 type="button"
-                onClick={() => toggleDay(i)}
+                onClick={() => setForm({ ...form, schedule_type: v as string })}
                 className={cn(
                   "flex-1 rounded-lg border py-2 text-xs",
-                  form.days.includes(i)
+                  form.schedule_type === v
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border text-muted-foreground",
                 )}
               >
-                {d[0]}
+                {label}
               </button>
             ))}
           </div>
         </Field>
+
+        {form.schedule_type === "interval" ? (
+          <Field label="Começar em (o hábito aparece a cada 2 dias a partir daqui)">
+            <Input
+              type="date"
+              value={form.anchor_date || toISODate()}
+              onChange={(e) => setForm({ ...form, anchor_date: e.target.value })}
+            />
+          </Field>
+        ) : (
+          <Field label="Dias da semana">
+            <div className="flex gap-1.5">
+              {WEEKDAYS.map((d, i) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => toggleDay(i)}
+                  className={cn(
+                    "flex-1 rounded-lg border py-2 text-xs",
+                    form.days.includes(i)
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground",
+                  )}
+                >
+                  {d[0]}
+                </button>
+              ))}
+            </div>
+          </Field>
+        )}
+
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Meta diária">
