@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { useList } from "@/lib/db";
 import type { Completion, Habit } from "@/lib/habits";
-import { habitStats, isScheduled, monthlyRate, streaks } from "@/lib/habits";
+import { habitStartISO, habitStats, isScheduled, monthlyRate, streaks } from "@/lib/habits";
 import { MONTHS, addDays, fromISODate, toISODate } from "@/lib/format";
 import { EmptyState, LoadingList, StatCard } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
