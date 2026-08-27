@@ -67,10 +67,13 @@ export function habitStats(habit: Habit, completions: Completion[], from: Date, 
 /** Current and longest streak counted over scheduled days only. */
 export function streaks(habit: Habit, completions: Completion[]) {
   const done = new Set(completions.map((c) => c.date));
-  const start = completions.length
-    ? new Date(Math.min(...completions.map((c) => new Date(c.date + "T00:00:00").getTime())))
-    : new Date();
-  const days = scheduledDatesBetween(habit, start, new Date()).filter((d) => d <= toISODate());
+  const startISO = [
+    habitStartISO(habit),
+    ...completions.map((c) => c.date),
+  ].sort()[0]!;
+  const days = scheduledDatesBetween(habit, fromISODate(startISO), new Date()).filter(
+    (d) => d <= toISODate(),
+  );
 
   let longest = 0;
   let run = 0;
