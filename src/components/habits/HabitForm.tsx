@@ -28,7 +28,10 @@ const empty = {
   target: 1,
   unit: "",
   note: "",
+  schedule_type: "weekly",
+  anchor_date: "",
 };
+
 
 export function HabitForm({
   open,
