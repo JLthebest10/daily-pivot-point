@@ -57,12 +57,11 @@ function HabitDetail() {
   const hc = completions.data ?? [];
   const now = new Date();
   const days = RANGES.find((r) => r.value === range)!.days;
-  const firstCompletion = hc.length
-    ? fromISODate(hc.map((c) => c.date).sort()[0]!)
-    : now;
-  const rangeStart = hc.length
-    ? new Date(Math.max(addDays(now, -(days - 1)).getTime(), firstCompletion.getTime()))
-    : addDays(now, -(days - 1));
+  // dataInicial = maior entre (hoje - período) e (data de início do hábito)
+  const periodStartISO = toISODate(addDays(now, -(days - 1)));
+  const habitStart = habitStartISO(habit);
+  const rangeStartISO = periodStartISO > habitStart ? periodStartISO : habitStart;
+  const rangeStart = fromISODate(rangeStartISO);
   const stats = habitStats(habit, hc, rangeStart, now);
   const s = streaks(habit, hc);
 
