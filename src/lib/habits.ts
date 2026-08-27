@@ -53,7 +53,9 @@ export function scheduledDatesBetween(habit: Habit, from: Date, to: Date) {
 
 export function habitStats(habit: Habit, completions: Completion[], from: Date, to: Date) {
   const done = new Set(completions.map((c) => c.date));
-  const scheduled = scheduledDatesBetween(habit, from, to);
+  const start = habitStartISO(habit);
+  const clampedFrom = toISODate(from) < start ? fromISODate(start) : from;
+  const scheduled = scheduledDatesBetween(habit, clampedFrom, to);
   const today = toISODate();
   const past = scheduled.filter((d) => d <= today);
   const completed = past.filter((d) => done.has(d));
