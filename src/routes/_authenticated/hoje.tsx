@@ -160,13 +160,21 @@ function TodayPage() {
       <section className="mt-8">
         <SectionTitle>Próximas semanas</SectionTitle>
         <MiniCalendar
-          events={(events.data ?? []).map((e) => ({
-            id: e.id,
+          events={[
+            ...(events.data ?? []).filter((e) => !e.repeat || e.repeat === "none"),
+            ...expandOccurrences(
+              (events.data ?? []).filter((e) => e.repeat && e.repeat !== "none"),
+              today,
+              toISODate(addDays(new Date(), 60)),
+            ),
+          ].map((e) => ({
+            id: `${e.id}-${e.date}`,
             title: e.title,
             date: e.date,
             time: e.start_time,
             importance: e.importance,
           }))}
+
           tasks={allTasks
             .filter((t) => t.due_date && !t.done)
             .map((t) => ({
