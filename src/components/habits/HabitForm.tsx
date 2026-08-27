@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSave } from "@/lib/db";
 import type { Habit } from "@/lib/habits";
-import { WEEKDAYS } from "@/lib/format";
+import { WEEKDAYS, toISODate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
