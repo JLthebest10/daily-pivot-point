@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSave } from "@/lib/db";
 import type { Habit } from "@/lib/habits";
-import { WEEKDAYS } from "@/lib/format";
+import { WEEKDAYS, toISODate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,7 +28,10 @@ const empty = {
   target: 1,
   unit: "",
   note: "",
+  schedule_type: "weekly",
+  anchor_date: "",
 };
+
 
 export function HabitForm({
   open,
@@ -56,10 +59,13 @@ export function HabitForm({
             target: Number(habit.target),
             unit: habit.unit ?? "",
             note: habit.note ?? "",
+            schedule_type: habit.schedule_type === "interval" ? "interval" : "weekly",
+            anchor_date: habit.anchor_date ?? "",
           }
         : { ...empty },
     );
   }, [open, habit]);
+
 
   function toggleDay(d: number) {
     setForm((f) => ({
@@ -70,7 +76,8 @@ export function HabitForm({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name.trim() || form.days.length === 0) return;
+    const interval = form.schedule_type === "interval";
+    if (!form.name.trim() || (!interval && form.days.length === 0)) return;
     const icon = form.icon.trim() || "⭐";
     await save.mutateAsync({
       ...(habit ? { id: habit.id } : {}),
@@ -78,14 +85,18 @@ export function HabitForm({
       icon,
       category: form.category,
       color: form.color,
-      days: form.days,
+      days: interval ? [0, 1, 2, 3, 4, 5, 6] : form.days,
       time: form.time || null,
       target: form.target || 1,
       unit: form.unit || null,
       note: form.note || null,
+      schedule_type: interval ? "interval" : "weekly",
+      interval_days: 2,
+      anchor_date: interval ? form.anchor_date || toISODate() : null,
     });
     onOpenChange(false);
   }
+
 
   return (
     <FormModal
@@ -158,25 +169,59 @@ export function HabitForm({
           </Field>
         </div>
 
-        <Field label="Dias da semana">
+        <Field label="Frequência">
           <div className="flex gap-1.5">
-            {WEEKDAYS.map((d, i) => (
+            {[
+              ["weekly", "Dias da semana"],
+              ["interval", "Dia sim, dia não"],
+            ].map(([v, label]) => (
               <button
-                key={d}
+                key={v}
                 type="button"
-                onClick={() => toggleDay(i)}
+                onClick={() => setForm({ ...form, schedule_type: v as string })}
                 className={cn(
                   "flex-1 rounded-lg border py-2 text-xs",
-                  form.days.includes(i)
+                  form.schedule_type === v
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border text-muted-foreground",
                 )}
               >
-                {d[0]}
+                {label}
               </button>
             ))}
           </div>
         </Field>
+
+        {form.schedule_type === "interval" ? (
+          <Field label="Começar em (o hábito aparece a cada 2 dias a partir daqui)">
+            <Input
+              type="date"
+              value={form.anchor_date || toISODate()}
+              onChange={(e) => setForm({ ...form, anchor_date: e.target.value })}
+            />
+          </Field>
+        ) : (
+          <Field label="Dias da semana">
+            <div className="flex gap-1.5">
+              {WEEKDAYS.map((d, i) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => toggleDay(i)}
+                  className={cn(
+                    "flex-1 rounded-lg border py-2 text-xs",
+                    form.days.includes(i)
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground",
+                  )}
+                >
+                  {d[0]}
+                </button>
+              ))}
+            </div>
+          </Field>
+        )}
+
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Meta diária">
