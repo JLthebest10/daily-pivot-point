@@ -156,7 +156,7 @@ function HabitDetail() {
           {cells.map((c) => (
             <span
               key={c.iso}
-              title={c.iso}
+              title={`${fromISODate(c.iso).toLocaleDateString("pt-BR")} — ${c.done ? "concluído" : "não concluído"}`}
               className={cn(
                 "size-3 rounded-[3px] transition-colors",
                 c.done
