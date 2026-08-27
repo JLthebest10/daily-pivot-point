@@ -15,7 +15,16 @@ export type Habit = {
   schedule_type?: string | null;
   interval_days?: number | null;
   anchor_date?: string | null;
+  created_at?: string | null;
 };
+
+/** First day this habit exists: creation date (or interval anchor, whichever is earlier). */
+export function habitStartISO(habit: Habit) {
+  const created = habit.created_at ? habit.created_at.slice(0, 10) : null;
+  const anchor = habit.schedule_type === "interval" ? (habit.anchor_date ?? null) : null;
+  if (created && anchor) return created < anchor ? created : anchor;
+  return created ?? anchor ?? toISODate();
+}
 
 export type Completion = { id: string; habit_id: string; date: string; value: number };
 
