@@ -6,6 +6,7 @@ import type { Completion, Habit } from "@/lib/habits";
 import { habitStats, isScheduled } from "@/lib/habits";
 import { addDays, toISODate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { HabitForm } from "@/components/habits/HabitForm";
 import { HabitCheck, useToggleCompletion } from "@/components/habits/HabitCheck";
 import {
