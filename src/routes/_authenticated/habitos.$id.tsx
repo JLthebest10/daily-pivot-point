@@ -32,11 +32,18 @@ export const Route = createFileRoute("/_authenticated/habitos/$id")({
   component: HabitDetail,
 });
 
-type Range = "week" | "month" | "year";
+type Range = "1m" | "3m" | "6m" | "1y";
+
+const RANGES: { value: Range; label: string; days: number }[] = [
+  { value: "1m", label: "1 mês", days: 30 },
+  { value: "3m", label: "3 meses", days: 90 },
+  { value: "6m", label: "6 meses", days: 180 },
+  { value: "1y", label: "1 ano", days: 365 },
+];
 
 function HabitDetail() {
   const { id } = Route.useParams();
-  const [range, setRange] = useState<Range>("month");
+  const [range, setRange] = useState<Range>("3m");
   const habits = useList<Habit>("habits", { eq: { id } });
   const completions = useList<Completion>("habit_completions", { eq: { habit_id: id } });
   const habit = habits.data?.[0];
@@ -49,35 +56,45 @@ function HabitDetail() {
 
   const hc = completions.data ?? [];
   const now = new Date();
-  const days = range === "week" ? 7 : range === "month" ? 30 : 365;
-  const stats = habitStats(habit, hc, addDays(now, -(days - 1)), now);
+  const days = RANGES.find((r) => r.value === range)!.days;
+  const rangeStart = addDays(now, -(days - 1));
+  const stats = habitStats(habit, hc, rangeStart, now);
   const s = streaks(habit, hc);
 
   const thisMonth = monthlyRate(habit, hc, now.getFullYear(), now.getMonth());
   const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const prevMonth = monthlyRate(habit, hc, prevDate.getFullYear(), prevDate.getMonth());
 
-  const chart = Array.from({ length: 6 }).map((_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-    const m = monthlyRate(habit, hc, d.getFullYear(), d.getMonth());
-    return { mes: MONTHS[d.getMonth()]!.slice(0, 3), consistencia: Math.round(m.rate) };
-  });
-
   const doneSet = new Set(hc.map((c) => c.date));
-  const heatStart = addDays(now, -181);
-  const cells: { iso: string; state: "done" | "missed" | "off" | "future" }[] = [];
-  for (let d = new Date(heatStart); d <= addDays(now, 6); d = addDays(d, 1)) {
+  const todayISO = toISODate(now);
+
+  // chart buckets: weekly for 1 month, monthly otherwise
+  const chart =
+    range === "1m"
+      ? Array.from({ length: 5 }).map((_, i) => {
+          const end = addDays(now, -(7 * (4 - i)));
+          const start = addDays(end, -6);
+          const m = habitStats(habit, hc, start, end);
+          return {
+            label: end.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+            consistencia: Math.round(m.rate),
+          };
+        })
+      : Array.from({ length: range === "3m" ? 3 : range === "6m" ? 6 : 12 }).map((_, i, arr) => {
+          const d = new Date(now.getFullYear(), now.getMonth() - (arr.length - 1 - i), 1);
+          const m = monthlyRate(habit, hc, d.getFullYear(), d.getMonth());
+          return { label: MONTHS[d.getMonth()]!.slice(0, 3), consistencia: Math.round(m.rate) };
+        });
+
+  // heatmap: left→right, top row first
+  const cells: { iso: string; done: boolean; scheduled: boolean; future: boolean }[] = [];
+  for (let d = new Date(rangeStart); d <= now; d = addDays(d, 1)) {
     const iso = toISODate(d);
-    const future = iso > toISODate(now);
     cells.push({
       iso,
-      state: doneSet.has(iso)
-        ? "done"
-        : !isScheduled(habit, d)
-          ? "off"
-          : future
-            ? "future"
-            : "missed",
+      done: doneSet.has(iso),
+      scheduled: isScheduled(habit, d),
+      future: iso > todayISO,
     });
   }
 
@@ -101,24 +118,18 @@ function HabitDetail() {
       </p>
 
       <div className="mt-6 flex gap-1.5">
-        {(
-          [
-            ["week", "Semana"],
-            ["month", "Mês"],
-            ["year", "Ano"],
-          ] as const
-        ).map(([v, label]) => (
+        {RANGES.map((r) => (
           <button
-            key={v}
-            onClick={() => setRange(v)}
+            key={r.value}
+            onClick={() => setRange(r.value)}
             className={cn(
               "rounded-full border px-3.5 py-1.5 text-xs transition-colors",
-              range === v
+              range === r.value
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border text-muted-foreground",
             )}
           >
-            {label}
+            {r.label}
           </button>
         ))}
       </div>
@@ -128,30 +139,38 @@ function HabitDetail() {
         <StatCard label="Sequência atual" value={`${s.current} dias`} />
         <StatCard label="Maior sequência" value={`${s.longest} dias`} />
         <StatCard label="Dias concluídos" value={String(stats.completed)} />
-        <StatCard label="Dias perdidos" value={String(stats.missed)} />
+        <StatCard label="Dias previstos" value={String(stats.scheduled)} />
         <StatCard label="Total histórico" value={String(s.total)} />
       </div>
 
       <div className="surface mt-4 p-4">
-        <h2 className="text-sm font-medium">Calendário de consistência</h2>
-        <div className="mt-3 flex gap-[3px] overflow-x-auto pb-1">
-          {Array.from({ length: Math.ceil(cells.length / 7) }).map((_, w) => (
-            <div key={w} className="flex flex-col gap-[3px]">
-              {cells.slice(w * 7, w * 7 + 7).map((c) => (
-                <span
-                  key={c.iso}
-                  title={c.iso}
-                  className={cn(
-                    "size-3 rounded-[3px]",
-                    c.state === "done" && "bg-primary",
-                    c.state === "missed" && "bg-destructive/25",
-                    c.state === "off" && "bg-muted",
-                    c.state === "future" && "bg-muted/50",
-                  )}
-                />
-              ))}
-            </div>
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-medium">Calendário de consistência</h2>
+          <span className="num text-xs text-muted-foreground">
+            {stats.completed}/{stats.scheduled}
+          </span>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-[3px]">
+          {cells.map((c) => (
+            <span
+              key={c.iso}
+              title={c.iso}
+              className={cn(
+                "size-3 rounded-[3px] transition-colors",
+                c.done
+                  ? "bg-primary shadow-[0_0_6px_-1px_var(--color-primary)]"
+                  : "bg-muted",
+              )}
+            />
           ))}
+        </div>
+        <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-3 rounded-[3px] bg-muted" /> não marcado
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-3 rounded-[3px] bg-primary" /> concluído
+          </span>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
           {MONTHS[now.getMonth()]}: {thisMonth.completed} dias cumpridos ·{" "}
@@ -161,19 +180,51 @@ function HabitDetail() {
       </div>
 
       <div className="surface mt-4 p-4">
-        <h2 className="text-sm font-medium">Consistência por mês</h2>
-        <div className="mt-4 h-48">
+        <h2 className="text-sm font-medium">Consistência ao longo do tempo</h2>
+        <div className="mt-4 h-52">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chart}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-              <XAxis dataKey="mes" tickLine={false} axisLine={false} fontSize={12} />
-              <YAxis width={32} tickLine={false} axisLine={false} fontSize={12} domain={[0, 100]} />
-              <Tooltip formatter={(v) => `${v}%`} />
-              <RBar dataKey="consistencia" fill="var(--color-primary)" radius={[6, 6, 0, 0]} />
-            </BarChart>
+            <AreaChart data={chart} margin={{ top: 8, right: 4, left: -18, bottom: 0 }}>
+              <defs>
+                <linearGradient id="consistencyFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.45} />
+                  <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="2 6" vertical={false} opacity={0.25} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
+              <YAxis
+                width={38}
+                tickLine={false}
+                axisLine={false}
+                fontSize={11}
+                domain={[0, 100]}
+                tickFormatter={(v) => `${v}%`}
+              />
+              <Tooltip
+                cursor={{ stroke: "var(--color-primary)", strokeOpacity: 0.3 }}
+                formatter={(v) => [`${v}%`, "Consistência"]}
+                contentStyle={{
+                  borderRadius: 12,
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-popover)",
+                  color: "var(--color-popover-foreground)",
+                  fontSize: 12,
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="consistencia"
+                stroke="var(--color-primary)"
+                strokeWidth={2.5}
+                fill="url(#consistencyFill)"
+                dot={{ r: 3, fill: "var(--color-primary)", strokeWidth: 0 }}
+                activeDot={{ r: 5 }}
+              />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
+
 
       <div className="surface mt-4 p-4">
         <h2 className="text-sm font-medium">Últimos registros</h2>
