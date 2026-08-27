@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { CalendarDays, ChevronRight, Wallet } from "lucide-react";
 import { useList, useSave } from "@/lib/db";
-import { toISODate } from "@/lib/format";
+import { addDays, toISODate } from "@/lib/format";
+import { expandOccurrences, occursOn } from "@/lib/recurrence";
 import { isScheduled, type Completion, type Habit } from "@/lib/habits";
 import { HabitCheck, useToggleCompletion } from "@/components/habits/HabitCheck";
 import { MiniCalendar } from "@/components/home/MiniCalendar";
@@ -29,6 +30,7 @@ type Event = {
   date: string;
   start_time: string | null;
   importance: string;
+  repeat?: string | null;
 };
 type Tx = { id: string; amount: number; date: string; type?: string };
 
@@ -58,7 +60,9 @@ function TodayPage() {
   const allTasks = tasks.data ?? [];
   const todayTasks = allTasks.filter((t) => t.due_date === today);
   const doneTasks = todayTasks.filter((t) => t.done);
-  const todayEvents = (events.data ?? []).filter((e) => e.date === today);
+  const todayEvents = (events.data ?? [])
+    .filter((e) => occursOn(e, today))
+    .map((e) => ({ ...e, date: today }));
 
   const habitsDone = doneToday.filter((c) => todayHabits.some((h) => h.id === c.habit_id)).length;
   const habitRate = todayHabits.length ? (habitsDone / todayHabits.length) * 100 : 0;
