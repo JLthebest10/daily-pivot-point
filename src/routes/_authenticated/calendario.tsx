@@ -117,7 +117,8 @@ function CalendarPage() {
 
   const byDate = (iso: string) =>
     (events.data ?? [])
-      .filter((e) => e.date === iso)
+      .filter((e) => occursOn(e, iso))
+      .map((e) => ({ ...e, date: iso }))
       .sort((a, b) => (a.start_time ?? "").localeCompare(b.start_time ?? ""));
 
   const tasksByDate = (iso: string) =>
@@ -126,16 +127,26 @@ function CalendarPage() {
       .sort((a, b) => (a.due_time ?? "").localeCompare(b.due_time ?? ""));
 
   const markedDays = new Map<string, string>();
-  for (const ev of events.data ?? []) {
-    const level = importanceOf(ev.importance);
-    const prev = markedDays.get(ev.date);
-    if (!prev || level.rank > (IMPORTANCE.find((i) => i.text === prev)?.rank ?? 0)) {
-      markedDays.set(ev.date, level.text);
+  {
+    const rangeStart = new Date(cursor.getFullYear(), 0, 1);
+    const rangeEnd = new Date(cursor.getFullYear(), 11, 31);
+    for (const ev of events.data ?? []) {
+      const level = importanceOf(ev.importance);
+      for (let d = new Date(rangeStart); d <= rangeEnd; d = addDays(d, 1)) {
+        const iso = toISODate(d);
+        if (!occursOn(ev, iso)) continue;
+        const prev = markedDays.get(iso);
+        if (!prev || level.rank > (IMPORTANCE.find((i) => i.text === prev)?.rank ?? 0)) {
+          markedDays.set(iso, level.text);
+        }
+        if (ev.repeat === "none" || !ev.repeat) break;
+      }
     }
   }
   for (const t of tasks.data ?? []) {
     if (t.due_date && !markedDays.has(t.due_date)) markedDays.set(t.due_date, "text-foreground");
   }
+
 
   const monthStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const gridStart = startOfWeek(monthStart);
