@@ -1,4 +1,4 @@
-import { addDays, toISODate } from "@/lib/format";
+import { addDays, fromISODate, toISODate } from "@/lib/format";
 
 export type Habit = {
   id: string;
@@ -12,13 +12,27 @@ export type Habit = {
   unit: string | null;
   note: string | null;
   archived: boolean;
+  schedule_type?: string | null;
+  interval_days?: number | null;
+  anchor_date?: string | null;
 };
 
 export type Completion = { id: string; habit_id: string; date: string; value: number };
 
 export function isScheduled(habit: Habit, date: Date) {
+  if (habit.schedule_type === "interval") {
+    const step = Math.max(1, Number(habit.interval_days) || 2);
+    const anchor = habit.anchor_date ?? toISODate();
+    const iso = toISODate(date);
+    if (iso < anchor) return false;
+    const diff = Math.round(
+      (fromISODate(iso).getTime() - fromISODate(anchor).getTime()) / 86_400_000,
+    );
+    return diff % step === 0;
+  }
   return habit.days.includes(date.getDay());
 }
+
 
 export function scheduledDatesBetween(habit: Habit, from: Date, to: Date) {
   const out: string[] = [];
