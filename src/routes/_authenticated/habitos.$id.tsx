@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { useList } from "@/lib/db";
 import type { Completion, Habit } from "@/lib/habits";
-import { habitStats, isScheduled, monthlyRate, streaks } from "@/lib/habits";
+import { habitStartISO, habitStats, isScheduled, monthlyRate, streaks } from "@/lib/habits";
 import { MONTHS, addDays, fromISODate, toISODate } from "@/lib/format";
 import { EmptyState, LoadingList, StatCard } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
@@ -57,12 +57,11 @@ function HabitDetail() {
   const hc = completions.data ?? [];
   const now = new Date();
   const days = RANGES.find((r) => r.value === range)!.days;
-  const firstCompletion = hc.length
-    ? fromISODate(hc.map((c) => c.date).sort()[0]!)
-    : now;
-  const rangeStart = hc.length
-    ? new Date(Math.max(addDays(now, -(days - 1)).getTime(), firstCompletion.getTime()))
-    : addDays(now, -(days - 1));
+  // dataInicial = maior entre (hoje - período) e (data de início do hábito)
+  const periodStartISO = toISODate(addDays(now, -(days - 1)));
+  const habitStart = habitStartISO(habit);
+  const rangeStartISO = periodStartISO > habitStart ? periodStartISO : habitStart;
+  const rangeStart = fromISODate(rangeStartISO);
   const stats = habitStats(habit, hc, rangeStart, now);
   const s = streaks(habit, hc);
 
@@ -92,14 +91,12 @@ function HabitDetail() {
         });
 
   // heatmap: left→right, top row first
-  const cells: { iso: string; done: boolean; scheduled: boolean; future: boolean }[] = [];
-  for (let d = new Date(rangeStart); d <= now; d = addDays(d, 1)) {
-    const iso = toISODate(d);
+  const cells: { iso: string; done: boolean; scheduled: boolean }[] = [];
+  for (let iso = rangeStartISO; iso <= todayISO; iso = toISODate(addDays(fromISODate(iso), 1))) {
     cells.push({
       iso,
       done: doneSet.has(iso),
-      scheduled: isScheduled(habit, d),
-      future: iso > todayISO,
+      scheduled: isScheduled(habit, fromISODate(iso)),
     });
   }
 
@@ -159,7 +156,7 @@ function HabitDetail() {
           {cells.map((c) => (
             <span
               key={c.iso}
-              title={c.iso}
+              title={`${fromISODate(c.iso).toLocaleDateString("pt-BR")} — ${c.done ? "concluído" : "não concluído"}`}
               className={cn(
                 "size-3 rounded-[3px] transition-colors",
                 c.done
