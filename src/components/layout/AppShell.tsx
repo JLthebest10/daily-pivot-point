@@ -16,6 +16,7 @@ import {
   Wallet,
   Store,
   ShoppingCart,
+  Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
