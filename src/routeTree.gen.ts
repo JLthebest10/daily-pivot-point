@@ -24,6 +24,8 @@ import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedProdutividadeRouteImport } from './routes/_authenticated/produtividade'
 import { Route as AuthenticatedRetroativoRouteImport } from './routes/_authenticated/retroativo'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
+import { Route as AuthenticatedAlunosIndexRouteImport } from './routes/_authenticated/alunos.index'
+import { Route as AuthenticatedAlunosIdRouteImport } from './routes/_authenticated/alunos.$id'
 import { Route as AuthenticatedDietaIndexRouteImport } from './routes/_authenticated/dieta.index'
 import { Route as AuthenticatedDietaConsistenciaRouteImport } from './routes/_authenticated/dieta.consistencia'
 import { Route as AuthenticatedDietaEvolucaoRouteImport } from './routes/_authenticated/dieta.evolucao'
@@ -108,6 +110,17 @@ const AuthenticatedTarefasRoute = AuthenticatedTarefasRouteImport.update({
   path: '/tarefas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAlunosIndexRoute =
+  AuthenticatedAlunosIndexRouteImport.update({
+    id: '/alunos/',
+    path: '/alunos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAlunosIdRoute = AuthenticatedAlunosIdRouteImport.update({
+  id: '/alunos/$id',
+  path: '/alunos/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDietaIndexRoute = AuthenticatedDietaIndexRouteImport.update({
   id: '/dieta/',
   path: '/dieta/',
@@ -163,10 +176,12 @@ export interface FileRoutesByFullPath {
   '/produtividade': typeof AuthenticatedProdutividadeRoute
   '/retroativo': typeof AuthenticatedRetroativoRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
+  '/alunos/$id': typeof AuthenticatedAlunosIdRoute
   '/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
+  '/alunos/': typeof AuthenticatedAlunosIndexRoute
   '/dieta/': typeof AuthenticatedDietaIndexRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/treino/': typeof AuthenticatedTreinoIndexRoute
@@ -186,10 +201,12 @@ export interface FileRoutesByTo {
   '/produtividade': typeof AuthenticatedProdutividadeRoute
   '/retroativo': typeof AuthenticatedRetroativoRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
+  '/alunos/$id': typeof AuthenticatedAlunosIdRoute
   '/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
+  '/alunos': typeof AuthenticatedAlunosIndexRoute
   '/dieta': typeof AuthenticatedDietaIndexRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
   '/treino': typeof AuthenticatedTreinoIndexRoute
@@ -211,10 +228,12 @@ export interface FileRoutesById {
   '/_authenticated/produtividade': typeof AuthenticatedProdutividadeRoute
   '/_authenticated/retroativo': typeof AuthenticatedRetroativoRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
+  '/_authenticated/alunos/$id': typeof AuthenticatedAlunosIdRoute
   '/_authenticated/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/_authenticated/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/_authenticated/treino/$id': typeof AuthenticatedTreinoIdRoute
+  '/_authenticated/alunos/': typeof AuthenticatedAlunosIndexRoute
   '/_authenticated/dieta/': typeof AuthenticatedDietaIndexRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/_authenticated/treino/': typeof AuthenticatedTreinoIndexRoute
@@ -236,10 +255,12 @@ export interface FileRouteTypes {
     | '/produtividade'
     | '/retroativo'
     | '/tarefas'
+    | '/alunos/$id'
     | '/dieta/consistencia'
     | '/dieta/evolucao'
     | '/habitos/$id'
     | '/treino/$id'
+    | '/alunos/'
     | '/dieta/'
     | '/habitos/'
     | '/treino/'
@@ -259,10 +280,12 @@ export interface FileRouteTypes {
     | '/produtividade'
     | '/retroativo'
     | '/tarefas'
+    | '/alunos/$id'
     | '/dieta/consistencia'
     | '/dieta/evolucao'
     | '/habitos/$id'
     | '/treino/$id'
+    | '/alunos'
     | '/dieta'
     | '/habitos'
     | '/treino'
@@ -283,10 +306,12 @@ export interface FileRouteTypes {
     | '/_authenticated/produtividade'
     | '/_authenticated/retroativo'
     | '/_authenticated/tarefas'
+    | '/_authenticated/alunos/$id'
     | '/_authenticated/dieta/consistencia'
     | '/_authenticated/dieta/evolucao'
     | '/_authenticated/habitos/$id'
     | '/_authenticated/treino/$id'
+    | '/_authenticated/alunos/'
     | '/_authenticated/dieta/'
     | '/_authenticated/habitos/'
     | '/_authenticated/treino/'
@@ -406,6 +431,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTarefasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/alunos/': {
+      id: '/_authenticated/alunos/'
+      path: '/alunos'
+      fullPath: '/alunos/'
+      preLoaderRoute: typeof AuthenticatedAlunosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/alunos/$id': {
+      id: '/_authenticated/alunos/$id'
+      path: '/alunos/$id'
+      fullPath: '/alunos/$id'
+      preLoaderRoute: typeof AuthenticatedAlunosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dieta/': {
       id: '/_authenticated/dieta/'
       path: '/dieta'
@@ -470,10 +509,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProdutividadeRoute: typeof AuthenticatedProdutividadeRoute
   AuthenticatedRetroativoRoute: typeof AuthenticatedRetroativoRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
+  AuthenticatedAlunosIdRoute: typeof AuthenticatedAlunosIdRoute
   AuthenticatedDietaConsistenciaRoute: typeof AuthenticatedDietaConsistenciaRoute
   AuthenticatedDietaEvolucaoRoute: typeof AuthenticatedDietaEvolucaoRoute
   AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
   AuthenticatedTreinoIdRoute: typeof AuthenticatedTreinoIdRoute
+  AuthenticatedAlunosIndexRoute: typeof AuthenticatedAlunosIndexRoute
   AuthenticatedDietaIndexRoute: typeof AuthenticatedDietaIndexRoute
   AuthenticatedHabitosIndexRoute: typeof AuthenticatedHabitosIndexRoute
   AuthenticatedTreinoIndexRoute: typeof AuthenticatedTreinoIndexRoute
@@ -491,10 +532,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProdutividadeRoute: AuthenticatedProdutividadeRoute,
   AuthenticatedRetroativoRoute: AuthenticatedRetroativoRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
+  AuthenticatedAlunosIdRoute: AuthenticatedAlunosIdRoute,
   AuthenticatedDietaConsistenciaRoute: AuthenticatedDietaConsistenciaRoute,
   AuthenticatedDietaEvolucaoRoute: AuthenticatedDietaEvolucaoRoute,
   AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
   AuthenticatedTreinoIdRoute: AuthenticatedTreinoIdRoute,
+  AuthenticatedAlunosIndexRoute: AuthenticatedAlunosIndexRoute,
   AuthenticatedDietaIndexRoute: AuthenticatedDietaIndexRoute,
   AuthenticatedHabitosIndexRoute: AuthenticatedHabitosIndexRoute,
   AuthenticatedTreinoIndexRoute: AuthenticatedTreinoIndexRoute,
