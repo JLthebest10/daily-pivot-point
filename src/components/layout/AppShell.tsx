@@ -45,6 +45,7 @@ export const NAV = [
   { to: "/tarefas", label: "Tarefas", icon: ListTodo },
   { to: "/metas", label: "Metas", icon: Flag },
   { to: "/comprar", label: "Comprar", icon: ShoppingCart },
+  { to: "/cartao", label: "Cartão Cinza", icon: CreditCard },
   { to: "/alunos", label: "Alunos", icon: Users },
   { to: "/lojinha", label: "Lojinha", icon: Store },
   { to: "/insights", label: "Insights", icon: BarChart3 },

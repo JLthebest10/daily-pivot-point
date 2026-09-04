@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
+import { Route as AuthenticatedCartaoRouteImport } from './routes/_authenticated/cartao'
 import { Route as AuthenticatedComprarRouteImport } from './routes/_authenticated/comprar'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedFinancasRouteImport } from './routes/_authenticated/financas'
@@ -56,6 +57,11 @@ const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
 const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
   id: '/calendario',
   path: '/calendario',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCartaoRoute = AuthenticatedCartaoRouteImport.update({
+  id: '/cartao',
+  path: '/cartao',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedComprarRoute = AuthenticatedComprarRouteImport.update({
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
+  '/cartao': typeof AuthenticatedCartaoRoute
   '/comprar': typeof AuthenticatedComprarRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/financas': typeof AuthenticatedFinancasRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
+  '/cartao': typeof AuthenticatedCartaoRoute
   '/comprar': typeof AuthenticatedComprarRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/financas': typeof AuthenticatedFinancasRoute
@@ -218,6 +226,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
+  '/_authenticated/cartao': typeof AuthenticatedCartaoRoute
   '/_authenticated/comprar': typeof AuthenticatedComprarRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/financas': typeof AuthenticatedFinancasRoute
@@ -245,6 +254,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/calendario'
+    | '/cartao'
     | '/comprar'
     | '/configuracoes'
     | '/financas'
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/calendario'
+    | '/cartao'
     | '/comprar'
     | '/configuracoes'
     | '/financas'
@@ -296,6 +307,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/_authenticated/calendario'
+    | '/_authenticated/cartao'
     | '/_authenticated/comprar'
     | '/_authenticated/configuracoes'
     | '/_authenticated/financas'
@@ -359,6 +371,13 @@ declare module '@tanstack/react-router' {
       path: '/calendario'
       fullPath: '/calendario'
       preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cartao': {
+      id: '/_authenticated/cartao'
+      path: '/cartao'
+      fullPath: '/cartao'
+      preLoaderRoute: typeof AuthenticatedCartaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/comprar': {
@@ -499,6 +518,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
+  AuthenticatedCartaoRoute: typeof AuthenticatedCartaoRoute
   AuthenticatedComprarRoute: typeof AuthenticatedComprarRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedFinancasRoute: typeof AuthenticatedFinancasRoute
@@ -522,6 +542,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
+  AuthenticatedCartaoRoute: AuthenticatedCartaoRoute,
   AuthenticatedComprarRoute: AuthenticatedComprarRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedFinancasRoute: AuthenticatedFinancasRoute,
