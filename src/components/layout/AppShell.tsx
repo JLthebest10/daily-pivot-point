@@ -4,6 +4,7 @@ import {
   CalendarDays,
   CheckCircle2,
   Cog,
+  CreditCard,
   Dumbbell,
   Flag,
   LayoutGrid,
