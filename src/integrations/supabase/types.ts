@@ -124,6 +124,69 @@ export type Database = {
         }
         Relationships: []
       }
+      card_expenses: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          date: string
+          description: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      card_settings: {
+        Row: {
+          closing_day: number
+          created_at: string
+          credit_limit: number
+          due_day: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          closing_day?: number
+          created_at?: string
+          credit_limit?: number
+          due_day?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          closing_day?: number
+          created_at?: string
+          credit_limit?: number
+          due_day?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           category: string
