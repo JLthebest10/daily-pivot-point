@@ -161,6 +161,17 @@ function StudentPage() {
         />
       </div>
 
+      <div className="mb-6 flex justify-end">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-destructive hover:text-destructive"
+          onClick={() => setDelOpen(true)}
+        >
+          <Trash2 className="size-4" /> Excluir aluno
+        </Button>
+      </div>
+
       {student.notes && (
         <p className="surface mb-6 px-4 py-3.5 text-sm text-muted-foreground">{student.notes}</p>
       )}
