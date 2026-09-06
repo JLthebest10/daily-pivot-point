@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { useList, useRemove, useSave } from "@/lib/db";
@@ -19,6 +19,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   ErrorNote,
   Field,
@@ -69,15 +79,18 @@ function StudentPage() {
   });
 
   const saveStudent = useSave("students", "Aluno atualizado");
+  const removeStudent = useRemove("students", "Aluno excluído");
   const saveAssessment = useSave("student_assessments", "Avaliação registrada");
   const removeAssessment = useRemove("student_assessments", "Avaliação excluída");
   const savePayment = useSave("student_payments", "Pagamento registrado");
   const removePayment = useRemove("student_payments", "Pagamento excluído");
+  const navigate = useNavigate();
 
   const student = students.data?.[0];
   const aList = assessments.data ?? [];
   const pList = payments.data ?? [];
 
+  const [delOpen, setDelOpen] = useState(false);
   const [aOpen, setAOpen] = useState(false);
   const [pOpen, setPOpen] = useState(false);
   const [aForm, setAForm] = useState({
@@ -146,6 +159,17 @@ function StudentPage() {
           checked={student.active}
           onCheckedChange={(v) => saveStudent.mutate({ id: student.id, active: v })}
         />
+      </div>
+
+      <div className="mb-6 flex justify-end">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-destructive hover:text-destructive"
+          onClick={() => setDelOpen(true)}
+        >
+          <Trash2 className="size-4" /> Excluir aluno
+        </Button>
       </div>
 
       {student.notes && (
@@ -388,6 +412,29 @@ function StudentPage() {
           </Button>
         </form>
       </FormModal>
+
+      <AlertDialog open={delOpen} onOpenChange={setDelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir aluno?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso apaga {student.name} junto com todas as avaliações e pagamentos registrados. A ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                await removeStudent.mutateAsync(student.id);
+                navigate({ to: "/alunos" });
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className={cn("h-6")} />
     </>
