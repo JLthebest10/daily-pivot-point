@@ -168,10 +168,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-3xl">
             <SheetHeader>
-              <SheetTitle>Módulos</SheetTitle>
+              <SheetTitle>Mais módulos</SheetTitle>
             </SheetHeader>
             <div className="grid grid-cols-3 gap-2 px-4 pb-8">
-              {NAV.map((item) => (
+              {NAV.filter((item) => !MOBILE_NAV.includes(item)).map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
