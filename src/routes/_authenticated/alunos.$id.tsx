@@ -79,15 +79,18 @@ function StudentPage() {
   });
 
   const saveStudent = useSave("students", "Aluno atualizado");
+  const removeStudent = useRemove("students", "Aluno excluído");
   const saveAssessment = useSave("student_assessments", "Avaliação registrada");
   const removeAssessment = useRemove("student_assessments", "Avaliação excluída");
   const savePayment = useSave("student_payments", "Pagamento registrado");
   const removePayment = useRemove("student_payments", "Pagamento excluído");
+  const navigate = useNavigate();
 
   const student = students.data?.[0];
   const aList = assessments.data ?? [];
   const pList = payments.data ?? [];
 
+  const [delOpen, setDelOpen] = useState(false);
   const [aOpen, setAOpen] = useState(false);
   const [pOpen, setPOpen] = useState(false);
   const [aForm, setAForm] = useState({
