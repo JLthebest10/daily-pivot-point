@@ -76,6 +76,15 @@ export type Purchase = {
   bought: boolean;
 };
 export type Saving = { id: string; name: string; target: number; current: number };
+export type FutureExpense = {
+  id: string;
+  name: string;
+  amount: number;
+  saved: number;
+  target_date: string;
+  note: string | null;
+  done: boolean;
+};
 
 const EXPENSE_CATS = ["Moradia", "Alimentação", "Transporte", "Saúde", "Lazer", "Educação", "Outros"];
 const INCOME_CATS = ["Salário", "Freelance", "Investimentos", "Outros"];
