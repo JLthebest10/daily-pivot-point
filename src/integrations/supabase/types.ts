@@ -342,6 +342,45 @@ export type Database = {
           },
         ]
       }
+      future_expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          done: boolean
+          id: string
+          name: string
+          note: string | null
+          saved: number
+          target_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          done?: boolean
+          id?: string
+          name: string
+          note?: string | null
+          saved?: number
+          target_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          done?: boolean
+          id?: string
+          name?: string
+          note?: string | null
+          saved?: number
+          target_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       goals: {
         Row: {
           category: string
