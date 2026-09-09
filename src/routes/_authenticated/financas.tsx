@@ -103,6 +103,7 @@ function FinancePage() {
   const tx = useList<Transaction>("transactions", { order: { column: "date", ascending: false } });
   const purchases = useList<Purchase>("purchases", { order: { column: "created_at" } });
   const savings = useList<Saving>("savings", { order: { column: "created_at" } });
+  const futures = useList<FutureExpense>("future_expenses", { order: { column: "target_date" } });
 
   const saveTx = useSave("transactions", "Lançamento salvo");
   const removeTx = useRemove("transactions", "Lançamento excluído");
