@@ -384,6 +384,119 @@ function FinancePage() {
         </div>
       )}
 
+      {tab === "futuros" &&
+        (() => {
+          const items = futures.data ?? [];
+          const pendingItems = items.filter((f) => !f.done);
+          const totalNeeded = pendingItems.reduce(
+            (a, f) => a + Math.max(0, Number(f.amount) - Number(f.saved)),
+            0,
+          );
+          const totalSaved = pendingItems.reduce((a, f) => a + Number(f.saved), 0);
+          return (
+            <div className="space-y-3">
+              <ErrorNote error={futures.error} />
+              <div className="grid grid-cols-2 gap-2">
+                <StatCard label="Falta economizar" value={money(totalNeeded)} tone="negative" />
+                <StatCard label="Já guardado" value={money(totalSaved)} tone="positive" />
+              </div>
+
+              <SectionTitle
+                action={
+                  <Button size="sm" variant="secondary" onClick={() => setOpenFuture(true)}>
+                    <Plus className="size-4" /> Adicionar
+                  </Button>
+                }
+              >
+                Futuros gastos
+              </SectionTitle>
+
+              {futures.isLoading ? (
+                <LoadingList />
+              ) : items.length === 0 ? (
+                <EmptyState
+                  title="Nenhum gasto futuro."
+                  description="Liste o que você precisa comprar e a data prevista para se organizar."
+                  actionLabel="Adicionar item"
+                  onAction={() => setOpenFuture(true)}
+                />
+              ) : (
+                <ul className="space-y-2">
+                  {items.map((f) => {
+                    const amount = Number(f.amount);
+                    const saved = Number(f.saved);
+                    const missing = Math.max(0, amount - saved);
+                    const days = Math.ceil(
+                      (new Date(`${f.target_date}T00:00:00`).getTime() -
+                        new Date(new Date().toDateString()).getTime()) /
+                        86400000,
+                    );
+                    return (
+                      <li key={f.id} className={cn("surface px-4 py-4", f.done && "opacity-60")}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p
+                              className={cn(
+                                "truncate text-sm font-medium",
+                                f.done && "line-through",
+                              )}
+                            >
+                              {f.name}
+                            </p>
+                            <p className="num text-xs text-muted-foreground">
+                              {money(saved)} de {money(amount)} ·{" "}
+                              {new Date(`${f.target_date}T00:00:00`).toLocaleDateString("pt-BR")}
+                              {!f.done &&
+                                (days >= 0 ? ` · em ${days} dia(s)` : ` · ${-days} dia(s) atrás`)}
+                            </p>
+                            {f.note && (
+                              <p className="mt-0.5 truncate text-xs text-muted-foreground">{f.note}</p>
+                            )}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Excluir"
+                            onClick={() => removeFuture.mutate(f.id)}
+                          >
+                            <Trash2 className="size-4 text-muted-foreground" />
+                          </Button>
+                        </div>
+                        <div className="mt-3">
+                          <Bar value={(saved / Math.max(1, amount)) * 100} />
+                        </div>
+                        <div className="mt-3 flex items-center gap-2">
+                          <Input
+                            type="number"
+                            step="any"
+                            aria-label="Valor guardado"
+                            defaultValue={saved}
+                            className="h-9 w-32"
+                            onBlur={(e) =>
+                              saveFuture.mutate({ id: f.id, saved: Number(e.target.value) })
+                            }
+                          />
+                          <span className="num text-xs text-muted-foreground">
+                            falta {money(missing)}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant={f.done ? "secondary" : "outline"}
+                            className="ml-auto"
+                            onClick={() => saveFuture.mutate({ id: f.id, done: !f.done })}
+                          >
+                            {f.done ? "Reabrir" : "Comprado"}
+                          </Button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          );
+        })()}
+
       {tab === "reserva" && (
         <div className="space-y-3">
           <SectionTitle
