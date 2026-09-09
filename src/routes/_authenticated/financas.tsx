@@ -111,6 +111,8 @@ function FinancePage() {
   const removePurchase = useRemove("purchases", "Compra excluída");
   const saveSaving = useSave("savings", "Reserva salva");
   const removeSaving = useRemove("savings", "Reserva excluída");
+  const saveFuture = useSave("future_expenses", "Item salvo");
+  const removeFuture = useRemove("future_expenses", "Item excluído");
 
   const [openTx, setOpenTx] = useState(false);
   const [openPurchase, setOpenPurchase] = useState(false);
