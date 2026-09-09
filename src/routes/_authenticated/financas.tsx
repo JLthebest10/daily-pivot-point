@@ -189,6 +189,7 @@ function FinancePage() {
             ["lancamentos", "Lançamentos"],
             ["contas", "Contas"],
             ["compras", "Compras"],
+            ["futuros", "Futuros gastos"],
             ["reserva", "Reserva"],
           ] as const
         ).map(([v, label]) => (
