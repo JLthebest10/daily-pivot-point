@@ -96,7 +96,7 @@ const PIE = [
   "var(--color-chart-5)",
 ];
 
-type Tab = "resumo" | "lancamentos" | "contas" | "compras" | "reserva";
+type Tab = "resumo" | "lancamentos" | "contas" | "compras" | "futuros" | "reserva";
 
 function FinancePage() {
   const [tab, setTab] = useState<Tab>("resumo");
