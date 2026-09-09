@@ -696,6 +696,73 @@ function FinancePage() {
         </form>
       </FormModal>
 
+      <FormModal open={openFuture} onOpenChange={setOpenFuture} title="Novo gasto futuro">
+        <form
+          className="space-y-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            await saveFuture.mutateAsync({
+              name: fForm.name.trim(),
+              amount: Number(fForm.amount),
+              saved: Number(fForm.saved),
+              target_date: fForm.target_date,
+              note: fForm.note.trim() || null,
+              done: false,
+            });
+            setFForm({ name: "", amount: 0, saved: 0, target_date: toISODate(), note: "" });
+            setOpenFuture(false);
+          }}
+        >
+          <Field label="Item">
+            <Input
+              value={fForm.name}
+              onChange={(e) => setFForm({ ...fForm, name: e.target.value })}
+              placeholder="Ex.: Notebook novo"
+              required
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Valor (R$)">
+              <Input
+                type="number"
+                step="0.01"
+                min={0}
+                value={fForm.amount}
+                onChange={(e) => setFForm({ ...fForm, amount: Number(e.target.value) })}
+                required
+              />
+            </Field>
+            <Field label="Já guardado (R$)">
+              <Input
+                type="number"
+                step="0.01"
+                min={0}
+                value={fForm.saved}
+                onChange={(e) => setFForm({ ...fForm, saved: Number(e.target.value) })}
+              />
+            </Field>
+          </div>
+          <Field label="Data da compra">
+            <Input
+              type="date"
+              value={fForm.target_date}
+              onChange={(e) => setFForm({ ...fForm, target_date: e.target.value })}
+              required
+            />
+          </Field>
+          <Field label="Observação">
+            <Input
+              value={fForm.note}
+              onChange={(e) => setFForm({ ...fForm, note: e.target.value })}
+              placeholder="Opcional"
+            />
+          </Field>
+          <Button type="submit" className="w-full" disabled={saveFuture.isPending}>
+            Salvar
+          </Button>
+        </form>
+      </FormModal>
+
       <FormModal open={openSaving} onOpenChange={setOpenSaving} title="Nova reserva">
         <form
           className="space-y-4"
