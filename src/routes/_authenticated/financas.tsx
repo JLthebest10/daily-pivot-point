@@ -117,6 +117,14 @@ function FinancePage() {
   const [openTx, setOpenTx] = useState(false);
   const [openPurchase, setOpenPurchase] = useState(false);
   const [openSaving, setOpenSaving] = useState(false);
+  const [openFuture, setOpenFuture] = useState(false);
+  const [fForm, setFForm] = useState({
+    name: "",
+    amount: 0,
+    saved: 0,
+    target_date: toISODate(),
+    note: "",
+  });
 
   const [txForm, setTxForm] = useState({
     type: "expense",
