@@ -45,6 +45,7 @@ function SettingsPage() {
     setName(profile.name ?? "");
     setWorkoutGoal(String(profile.weekly_workout_goal ?? 4));
     setSavingsGoal(String(profile.monthly_savings_goal ?? 0));
+    setTabs(resolveTabs(profile.modules).map((n) => n.to));
   }, [profile]);
 
   const navigate = useNavigate();
