@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, PageHeader, SectionTitle } from "@/components/ui-kit";
+import { NAV, DEFAULT_TABS, resolveTabs } from "@/components/layout/AppShell";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
@@ -109,6 +110,48 @@ function SettingsPage() {
             atualize o histórico de produtividade.
           </p>
         </Link>
+      </section>
+
+      <section className="mt-8">
+        <SectionTitle>Abas do menu inferior</SectionTitle>
+        <div className="surface px-4 py-4">
+          <p className="text-xs text-muted-foreground">
+            Escolha até 4 módulos para aparecerem como abas ({tabs.length}/4).
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {NAV.map((item) => {
+              const selected = tabs.includes(item.to);
+              return (
+                <button
+                  key={item.to}
+                  type="button"
+                  onClick={() => {
+                    if (selected) setTabs(tabs.filter((t) => t !== item.to));
+                    else if (tabs.length >= 4) toast.error("Só cabem 4 abas. Remova uma antes.");
+                    else setTabs([...tabs, item.to]);
+                  }}
+                  className={cn(
+                    "surface flex items-center gap-2 px-3 py-2 text-sm",
+                    selected && "border-primary text-primary",
+                  )}
+                >
+                  <item.icon className="size-4" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+          <Button
+            className="mt-4"
+            disabled={tabs.length !== 4 || update.isPending}
+            onClick={async () => {
+              await update.mutateAsync({ modules: tabs });
+              toast.success("Abas atualizadas");
+            }}
+          >
+            Salvar abas
+          </Button>
+        </div>
       </section>
 
       <section className="mt-8">
