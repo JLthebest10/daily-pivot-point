@@ -71,6 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const mobileNav = resolveTabs(profile?.modules);
 
   async function signOut() {
     await queryClient.cancelQueries();
