@@ -53,9 +53,15 @@ export const NAV = [
   { to: "/configuracoes", label: "Configurações", icon: Cog },
 ] as const;
 
-const MOBILE_NAV = NAV.filter((n) =>
-  ["/hoje", "/habitos", "/treino", "/calendario"].includes(n.to),
-);
+export const DEFAULT_TABS = ["/hoje", "/habitos", "/treino", "/calendario"];
+
+export function resolveTabs(modules?: string[] | null) {
+  const valid = (modules ?? []).filter((m) => NAV.some((n) => n.to === m)).slice(0, 4);
+  const list = valid.length ? valid : DEFAULT_TABS;
+  return NAV.filter((n) => list.includes(n.to)).sort(
+    (a, b) => list.indexOf(a.to) - list.indexOf(b.to),
+  );
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
