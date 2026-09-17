@@ -53,9 +53,15 @@ export const NAV = [
   { to: "/configuracoes", label: "Configurações", icon: Cog },
 ] as const;
 
-const MOBILE_NAV = NAV.filter((n) =>
-  ["/hoje", "/habitos", "/treino", "/calendario"].includes(n.to),
-);
+export const DEFAULT_TABS = ["/hoje", "/habitos", "/treino", "/calendario"];
+
+export function resolveTabs(modules?: string[] | null) {
+  const valid = (modules ?? []).filter((m) => NAV.some((n) => n.to === m)).slice(0, 4);
+  const list = valid.length ? valid : DEFAULT_TABS;
+  return NAV.filter((n) => list.includes(n.to)).sort(
+    (a, b) => list.indexOf(a.to) - list.indexOf(b.to),
+  );
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -65,6 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const mobileNav = resolveTabs(profile?.modules);
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -148,7 +155,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-        {MOBILE_NAV.map((item) => (
+        {mobileNav.map((item) => (
           <Link
             key={item.to}
             to={item.to}
@@ -171,7 +178,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <SheetTitle>Mais módulos</SheetTitle>
             </SheetHeader>
             <div className="grid grid-cols-3 gap-2 px-4 pb-8">
-              {NAV.filter((item) => !MOBILE_NAV.includes(item)).map((item) => (
+              {NAV.filter((item) => !mobileNav.some((m) => m.to === item.to)).map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
