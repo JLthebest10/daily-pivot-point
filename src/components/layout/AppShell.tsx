@@ -155,7 +155,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-        {MOBILE_NAV.map((item) => (
+        {mobileNav.map((item) => (
           <Link
             key={item.to}
             to={item.to}
@@ -178,7 +178,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <SheetTitle>Mais módulos</SheetTitle>
             </SheetHeader>
             <div className="grid grid-cols-3 gap-2 px-4 pb-8">
-              {NAV.filter((item) => !MOBILE_NAV.includes(item)).map((item) => (
+              {NAV.filter((item) => !mobileNav.some((m) => m.to === item.to)).map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
