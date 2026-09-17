@@ -38,6 +38,7 @@ function SettingsPage() {
   const [workoutGoal, setWorkoutGoal] = useState("4");
   const [savingsGoal, setSavingsGoal] = useState("0");
   const [account, setAccount] = useState<string | null>(null);
+  const [tabs, setTabs] = useState<string[]>(DEFAULT_TABS);
 
   useEffect(() => {
     if (!profile) return;
