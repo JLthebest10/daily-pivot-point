@@ -124,6 +124,174 @@ export type Database = {
         }
         Relationships: []
       }
+      calorie_days: {
+        Row: {
+          add_exercise: boolean
+          bmr: number
+          created_at: string
+          date: string
+          id: string
+          kcal_goal: number | null
+          tdee: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          add_exercise?: boolean
+          bmr?: number
+          created_at?: string
+          date: string
+          id?: string
+          kcal_goal?: number | null
+          tdee?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          add_exercise?: boolean
+          bmr?: number
+          created_at?: string
+          date?: string
+          id?: string
+          kcal_goal?: number | null
+          tdee?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      calorie_entries: {
+        Row: {
+          carbs: number | null
+          category: string
+          created_at: string
+          date: string
+          description: string | null
+          duration_min: number | null
+          fat: number | null
+          id: string
+          is_free: boolean
+          kcal: number
+          kind: string
+          name: string
+          note: string | null
+          protein: number | null
+          quantity: string | null
+          time: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          carbs?: number | null
+          category?: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          duration_min?: number | null
+          fat?: number | null
+          id?: string
+          is_free?: boolean
+          kcal?: number
+          kind?: string
+          name?: string
+          note?: string | null
+          protein?: number | null
+          quantity?: string | null
+          time?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          carbs?: number | null
+          category?: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          duration_min?: number | null
+          fat?: number | null
+          id?: string
+          is_free?: boolean
+          kcal?: number
+          kind?: string
+          name?: string
+          note?: string | null
+          protein?: number | null
+          quantity?: string | null
+          time?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      calorie_profiles: {
+        Row: {
+          activity_level: string
+          add_exercise: boolean
+          age: number | null
+          bmr: number | null
+          bmr_manual: boolean
+          body_fat: number | null
+          created_at: string
+          daily_kcal_goal: number | null
+          desired_deficit: number | null
+          goal_body_fat: number | null
+          goal_weight: number | null
+          height_cm: number | null
+          id: string
+          name: string | null
+          sex: string
+          start_body_fat: number | null
+          start_weight: number | null
+          updated_at: string
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          activity_level?: string
+          add_exercise?: boolean
+          age?: number | null
+          bmr?: number | null
+          bmr_manual?: boolean
+          body_fat?: number | null
+          created_at?: string
+          daily_kcal_goal?: number | null
+          desired_deficit?: number | null
+          goal_body_fat?: number | null
+          goal_weight?: number | null
+          height_cm?: number | null
+          id?: string
+          name?: string | null
+          sex?: string
+          start_body_fat?: number | null
+          start_weight?: number | null
+          updated_at?: string
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          activity_level?: string
+          add_exercise?: boolean
+          age?: number | null
+          bmr?: number | null
+          bmr_manual?: boolean
+          body_fat?: number | null
+          created_at?: string
+          daily_kcal_goal?: number | null
+          desired_deficit?: number | null
+          goal_body_fat?: number | null
+          goal_weight?: number | null
+          height_cm?: number | null
+          id?: string
+          name?: string | null
+          sex?: string
+          start_body_fat?: number | null
+          start_weight?: number | null
+          updated_at?: string
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       card_expenses: {
         Row: {
           amount: number
@@ -821,6 +989,45 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_meals: {
+        Row: {
+          carbs: number | null
+          category: string
+          created_at: string
+          description: string | null
+          fat: number | null
+          id: string
+          kcal: number
+          name: string
+          protein: number | null
+          user_id: string
+        }
+        Insert: {
+          carbs?: number | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          fat?: number | null
+          id?: string
+          kcal?: number
+          name: string
+          protein?: number | null
+          user_id: string
+        }
+        Update: {
+          carbs?: number | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          fat?: number | null
+          id?: string
+          kcal?: number
+          name?: string
+          protein?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       savings: {
         Row: {
           amount: number
@@ -1150,6 +1357,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      weight_logs: {
+        Row: {
+          body_fat: number | null
+          created_at: string
+          date: string
+          id: string
+          note: string | null
+          user_id: string
+          weight_kg: number
+        }
+        Insert: {
+          body_fat?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          user_id: string
+          weight_kg: number
+        }
+        Update: {
+          body_fat?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          user_id?: string
+          weight_kg?: number
+        }
+        Relationships: []
       }
       workout_sessions: {
         Row: {
