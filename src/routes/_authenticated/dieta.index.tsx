@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Activity, Camera, Pencil, Plus, Trash2 } from "lucide-react";
+import { Activity, Camera, Flame, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   currentUserId,
@@ -259,6 +259,18 @@ function DietPage() {
       />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2">
+        <Link
+          to="/dieta/calorias"
+          className="surface flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/40 sm:col-span-2"
+        >
+          <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <Flame className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">Acompanhamento calórico</p>
+            <p className="text-xs text-muted-foreground">Consumo, exercícios, déficit e peso.</p>
+          </div>
+        </Link>
         <Link
           to="/dieta/evolucao"
           className="surface flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/40"
