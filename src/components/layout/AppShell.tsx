@@ -53,12 +53,20 @@ export const NAV = [
   { to: "/configuracoes", label: "Configurações", icon: Cog },
 ] as const;
 
+export const LOCKED_MODULES = ["/hoje", "/configuracoes"];
+
+export function visibleNav(hidden?: string[] | null) {
+  const h = (hidden ?? []).filter((m) => !LOCKED_MODULES.includes(m));
+  return NAV.filter((n) => !h.includes(n.to));
+}
+
 export const DEFAULT_TABS = ["/hoje", "/habitos", "/treino", "/calendario"];
 
-export function resolveTabs(modules?: string[] | null) {
-  const valid = (modules ?? []).filter((m) => NAV.some((n) => n.to === m)).slice(0, 4);
-  const list = valid.length ? valid : DEFAULT_TABS;
-  return NAV.filter((n) => list.includes(n.to)).sort(
+export function resolveTabs(modules?: string[] | null, hidden?: string[] | null) {
+  const nav = visibleNav(hidden);
+  const valid = (modules ?? []).filter((m) => nav.some((n) => n.to === m)).slice(0, 4);
+  const list = valid.length ? valid : DEFAULT_TABS.filter((m) => nav.some((n) => n.to === m));
+  return nav.filter((n) => list.includes(n.to)).sort(
     (a, b) => list.indexOf(a.to) - list.indexOf(b.to),
   );
 }
@@ -71,7 +79,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const mobileNav = resolveTabs(profile?.modules);
+  const mobileNav = resolveTabs(profile?.modules, profile?.hidden_modules);
+  const nav = visibleNav(profile?.hidden_modules);
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -98,7 +107,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </button>
 
         <nav className="mt-4 flex-1 space-y-0.5">
-          {NAV.map((item) => (
+          {nav.map((item) => (
             <Link
               key={item.to}
               to={item.to}
@@ -178,7 +187,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <SheetTitle>Mais módulos</SheetTitle>
             </SheetHeader>
             <div className="grid grid-cols-3 gap-2 px-4 pb-8">
-              {NAV.filter((item) => !mobileNav.some((m) => m.to === item.to)).map((item) => (
+              {nav.filter((item) => !mobileNav.some((m) => m.to === item.to)).map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
