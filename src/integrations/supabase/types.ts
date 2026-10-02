@@ -921,6 +921,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          hidden_modules: string[]
           id: string
           modules: string[]
           monthly_savings_goal: number
@@ -933,6 +934,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          hidden_modules?: string[]
           id: string
           modules?: string[]
           monthly_savings_goal?: number
@@ -945,6 +947,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          hidden_modules?: string[]
           id?: string
           modules?: string[]
           monthly_savings_goal?: number

@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS hidden_modules text[] NOT NULL DEFAULT '{}';
