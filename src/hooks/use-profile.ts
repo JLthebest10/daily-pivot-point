@@ -11,6 +11,7 @@ export type Profile = {
   weekly_workout_goal: number;
   monthly_savings_goal: number;
   modules: string[];
+  hidden_modules: string[];
   onboarded: boolean;
 };
 

@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, PageHeader, SectionTitle } from "@/components/ui-kit";
-import { NAV, DEFAULT_TABS, resolveTabs } from "@/components/layout/AppShell";
+import { NAV, DEFAULT_TABS, LOCKED_MODULES, resolveTabs, visibleNav } from "@/components/layout/AppShell";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
@@ -39,13 +39,15 @@ function SettingsPage() {
   const [savingsGoal, setSavingsGoal] = useState("0");
   const [account, setAccount] = useState<string | null>(null);
   const [tabs, setTabs] = useState<string[]>(DEFAULT_TABS);
+  const [hidden, setHidden] = useState<string[]>([]);
 
   useEffect(() => {
     if (!profile) return;
     setName(profile.name ?? "");
     setWorkoutGoal(String(profile.weekly_workout_goal ?? 4));
     setSavingsGoal(String(profile.monthly_savings_goal ?? 0));
-    setTabs(resolveTabs(profile.modules).map((n) => n.to));
+    setTabs(resolveTabs(profile.modules, profile.hidden_modules).map((n) => n.to));
+    setHidden(profile.hidden_modules ?? []);
   }, [profile]);
 
   const navigate = useNavigate();
@@ -121,7 +123,7 @@ function SettingsPage() {
             Escolha até 4 módulos para aparecerem como abas ({tabs.length}/4).
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {NAV.map((item) => {
+            {visibleNav(hidden).map((item) => {
               const selected = tabs.includes(item.to);
               return (
                 <button
@@ -152,6 +154,49 @@ function SettingsPage() {
             }}
           >
             Salvar abas
+          </Button>
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <SectionTitle>Módulos</SectionTitle>
+        <div className="surface px-4 py-4">
+          <p className="text-xs text-muted-foreground">
+            Desative os módulos que não fazem sentido pra você. Eles somem do menu, mas seus dados
+            continuam salvos e voltam se você reativar.
+          </p>
+          <div className="mt-3 divide-y divide-border">
+            {NAV.filter((n) => !LOCKED_MODULES.includes(n.to)).map((item) => {
+              const on = !hidden.includes(item.to);
+              return (
+                <label key={item.to} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                  <span className="flex items-center gap-2">
+                    <item.icon className="size-4 text-muted-foreground" />
+                    {item.label}
+                  </span>
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-[var(--primary)]"
+                    checked={on}
+                    onChange={() =>
+                      setHidden(on ? [...hidden, item.to] : hidden.filter((h) => h !== item.to))
+                    }
+                  />
+                </label>
+              );
+            })}
+          </div>
+          <Button
+            className="mt-4"
+            disabled={update.isPending}
+            onClick={async () => {
+              const nextTabs = tabs.filter((t) => !hidden.includes(t));
+              await update.mutateAsync({ hidden_modules: hidden, modules: nextTabs });
+              setTabs(resolveTabs(nextTabs, hidden).map((n) => n.to));
+              toast.success("Módulos atualizados");
+            }}
+          >
+            Salvar módulos
           </Button>
         </div>
       </section>
