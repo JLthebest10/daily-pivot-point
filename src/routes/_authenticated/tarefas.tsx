@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { EmptyState, ErrorNote, Field, FormModal, LoadingList, PageHeader } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
+import { AlarmButton } from "@/components/AlarmButton";
 
 export const Route = createFileRoute("/_authenticated/tarefas")({
   head: () => ({
@@ -223,6 +224,7 @@ function TaskRow({
       >
         {task.priority}
       </span>
+      {!task.done && <AlarmButton time={task.due_time} title={task.title} />}
       <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => onRemove.mutate(task.id)}>
         <Trash2 className="size-4 text-muted-foreground" />
       </Button>
