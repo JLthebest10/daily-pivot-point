@@ -509,7 +509,7 @@ function DayBlock({
                   <p className="mt-1 text-xs text-muted-foreground">{e.description}</p>
                 )}
               </div>
-              <AlarmButton time={e.start_time} title={e.title} />
+              <AlarmButton date={e.date} time={e.start_time} title={e.title} />
               <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => onRemove(e.id)}>
                 <Trash2 className="size-4 text-muted-foreground" />
               </Button>
@@ -534,7 +534,7 @@ function DayBlock({
                   Tarefa · {t.category} · prioridade {t.priority}
                 </p>
               </div>
-              {!t.done && <AlarmButton time={t.due_time} title={t.title} />}
+              {!t.done && <AlarmButton date={t.due_date} time={t.due_time} title={t.title} />}
             </li>
           ))}
         </ul>

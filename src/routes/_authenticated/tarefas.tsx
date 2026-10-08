@@ -224,7 +224,7 @@ function TaskRow({
       >
         {task.priority}
       </span>
-      {!task.done && <AlarmButton time={task.due_time} title={task.title} />}
+      {!task.done && <AlarmButton date={task.due_date} time={task.due_time} title={task.title} />}
       <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => onRemove.mutate(task.id)}>
         <Trash2 className="size-4 text-muted-foreground" />
       </Button>
