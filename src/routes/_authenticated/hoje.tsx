@@ -138,7 +138,7 @@ function TodayPage() {
                   {e.start_time ?? "—"}
                 </span>
                 <p className="min-w-0 flex-1 truncate text-sm font-medium">{e.title}</p>
-                <AlarmButton time={e.start_time} title={e.title} />
+                <AlarmButton date={e.date} time={e.start_time} title={e.title} />
               </li>
             ))}
             {todayTasks.map((t) => (
@@ -157,7 +157,7 @@ function TodayPage() {
                 >
                   {t.title}
                 </span>
-                {!t.done && <AlarmButton time={t.due_time} title={t.title} />}
+                {!t.done && <AlarmButton date={t.due_date} time={t.due_time} title={t.title} />}
               </li>
             ))}
           </ul>
