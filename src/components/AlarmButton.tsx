@@ -8,7 +8,7 @@ export function buildReminderText(date: string, time: string, title: string): st
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
   const m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(time);
   if (!m) return null;
-  const hh = m[1].padStart(2, "0");
+  const hh = (m[1] ?? "").padStart(2, "0");
   return `${date}T${hh}:${m[2]}:${m[3] ?? "00"}|${title.replace(/\|/g, " ")}`;
 }
 
