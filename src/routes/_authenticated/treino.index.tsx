@@ -1,12 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ChevronRight, Dumbbell, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, Dumbbell, Library, Pencil, Plus, Trash2 } from "lucide-react";
 import { useList, useRemove, useSave } from "@/lib/db";
 import { WEEKDAYS } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState, ErrorNote, Field, FormModal, LoadingList, PageHeader } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/treino/")({
   head: () => ({
@@ -21,20 +31,12 @@ export const Route = createFileRoute("/_authenticated/treino/")({
 });
 
 export type Workout = { id: string; name: string; focus: string | null; weekdays: number[] };
-export type Exercise = {
-  id: string;
-  workout_id: string;
-  name: string;
-  sets: number;
-  reps: string;
-  rest_sec: number;
-  notes: string | null;
-  position: number;
-};
+export type Exercise = { id: string; workout_id: string; name: string; archived: boolean };
 export type WorkoutSession = {
   id: string;
   workout_id: string;
   date: string;
+  finished_at: string | null;
   duration_min: number | null;
   notes: string | null;
 };
@@ -48,24 +50,39 @@ function WorkoutsPage() {
   const save = useSave("workouts", "Treino salvo");
   const remove = useRemove("workouts", "Treino excluído");
   const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [delW, setDelW] = useState<Workout | null>(null);
   const [form, setForm] = useState<{ name: string; focus: string; weekdays: number[] }>({
     name: "",
     focus: "",
     weekdays: [],
   });
 
-  const countFor = (id: string) => (exercises.data ?? []).filter((e) => e.workout_id === id).length;
-  const lastFor = (id: string) => (sessions.data ?? []).find((s) => s.workout_id === id);
+  const countFor = (id: string) => (exercises.data ?? []).filter((e) => e.workout_id === id && !e.archived).length;
+  const lastFor = (id: string) => (sessions.data ?? []).find((s) => s.workout_id === id && s.finished_at);
+  const finishedCount = (sessions.data ?? []).filter((s) => s.finished_at).length;
+  const openNew = () => {
+    setEditId(null);
+    setForm({ name: "", focus: "", weekdays: [] });
+    setOpen(true);
+  };
 
   return (
     <>
       <PageHeader
         title="Treino"
-        subtitle={`${(sessions.data ?? []).length} sessões registradas`}
+        subtitle={`${finishedCount} sessões registradas`}
         action={
-          <Button onClick={() => setOpen(true)}>
-            <Plus className="size-4" /> Novo treino
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" asChild>
+              <Link to="/treino/exercicios">
+                <Library className="size-4" /> Biblioteca
+              </Link>
+            </Button>
+            <Button onClick={openNew}>
+              <Plus className="size-4" /> Treino
+            </Button>
+          </div>
         }
       />
 
@@ -77,7 +94,7 @@ function WorkoutsPage() {
           title="Nenhum treino cadastrado."
           description="Monte seu treino A, B, C e registre cada série com a carga usada."
           actionLabel="Criar treino"
-          onAction={() => setOpen(true)}
+          onAction={openNew}
         />
       ) : (
         <ul className="space-y-2">
@@ -107,9 +124,16 @@ function WorkoutsPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Excluir"
-                  onClick={() => remove.mutate(w.id)}
+                  aria-label="Editar treino"
+                  onClick={() => {
+                    setEditId(w.id);
+                    setForm({ name: w.name, focus: w.focus ?? "", weekdays: w.weekdays ?? [] });
+                    setOpen(true);
+                  }}
                 >
+                  <Pencil className="size-4 text-muted-foreground" />
+                </Button>
+                <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => setDelW(w)}>
                   <Trash2 className="size-4 text-muted-foreground" />
                 </Button>
                 <ChevronRight className="size-4 text-muted-foreground" />
@@ -119,12 +143,13 @@ function WorkoutsPage() {
         </ul>
       )}
 
-      <FormModal open={open} onOpenChange={setOpen} title="Novo treino">
+      <FormModal open={open} onOpenChange={setOpen} title={editId ? "Editar treino" : "Novo treino"}>
         <form
           className="space-y-4"
           onSubmit={async (e) => {
             e.preventDefault();
             await save.mutateAsync({
+              ...(editId ? { id: editId } : {}),
               name: form.name.trim(),
               focus: form.focus || null,
               weekdays: form.weekdays,
@@ -179,6 +204,27 @@ function WorkoutsPage() {
           </Button>
         </form>
       </FormModal>
+      <AlertDialog open={!!delW} onOpenChange={(v) => !v && setDelW(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir “{delW?.name}”?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O treino e as cargas registradas nele serão apagados. Os exercícios continuam na biblioteca.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (delW) remove.mutate(delW.id);
+                setDelW(null);
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
