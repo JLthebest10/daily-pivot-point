@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ImagePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -48,6 +48,43 @@ export function ExerciseForm({
   const [preview, setPreview] = useState<string | null>(null);
   const [removeMedia, setRemoveMedia] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState<"" | "upload" | "save">("");
+  const [uploading, setUploading] = useState(false);
+  // upload começa assim que o arquivo é escolhido; salvar só aguarda terminar
+  const uploadRef = useRef<{ file: File; promise: Promise<string> } | null>(null);
+  const savedRef = useRef(false);
+
+  // fechou sem salvar: apaga o arquivo enviado
+  useEffect(() => () => {
+    if (!savedRef.current) discardPending();
+  }, []);
+
+  function discardPending() {
+    const pending = uploadRef.current;
+    uploadRef.current = null;
+    if (pending) pending.promise.then((p) => deleteExerciseMedia(p)).catch(() => undefined);
+  }
+
+  function startUpload(picked: File) {
+    const kind = mediaKind(picked)!;
+    discardPending();
+    setUploading(true);
+    const promise = uploadExerciseMedia(picked, kind);
+    const entry = { file: picked, promise };
+    uploadRef.current = entry;
+    promise
+      .catch(() => {
+        if (uploadRef.current === entry) {
+          toast.error("Não foi possível enviar a mídia. Verifique a internet e tente de novo.");
+          uploadRef.current = null;
+          setFile(null);
+          setPreview(null);
+        }
+      })
+      .finally(() => {
+        if (uploadRef.current === entry || !uploadRef.current) setUploading(false);
+      });
+  }
 
   const dup = !initial ? findDuplicate(library, f.name) : undefined;
   const fileKind = file ? mediaKind(file) : null;
@@ -69,22 +106,25 @@ export function ExerciseForm({
     setFile(picked);
     setPreview(URL.createObjectURL(picked));
     setRemoveMedia(false);
+    startUpload(picked);
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!f.name.trim()) return;
+    if (!f.name.trim() || busy) return;
     setBusy(true);
     try {
       let media_path = initial?.media_path ?? null;
       let media_type = initial?.media_type ?? null;
+      const oldPath = initial?.media_path ?? null;
       if (file && fileKind) {
-        const newPath = await uploadExerciseMedia(file, fileKind);
-        await deleteExerciseMedia(initial?.media_path);
-        media_path = newPath;
+        setStage("upload");
+        if (!uploadRef.current || uploadRef.current.file !== file) startUpload(file);
+        media_path = await uploadRef.current!.promise;
         media_type = fileKind;
+        // mostra a mídia na hora usando o arquivo local, sem baixar de novo
+        if (preview) qc.setQueryData(["media-url", media_path], preview);
       } else if (removeMedia) {
-        await deleteExerciseMedia(initial?.media_path);
         media_path = null;
         media_type = null;
       }
@@ -99,22 +139,39 @@ export function ExerciseForm({
         media_path,
         media_type,
       };
+      setStage("save");
       const q = initial
         ? db.from("exercise_library").update(values).eq("id", initial.id)
         : db.from("exercise_library").insert({ ...values, user_id: await currentUserId() });
       const { data, error } = await q.select().single();
       if (error) throw error;
-      if (initial) {
+      savedRef.current = true;
+      uploadRef.current = null;
+      // apaga a mídia antiga em segundo plano
+      if (oldPath && oldPath !== media_path) void deleteExerciseMedia(oldPath);
+      if (initial && initial.name !== values.name) {
         // mantém o nome igual nos treinos que usam este exercício
         await db.from("exercises").update({ name: values.name }).eq("library_id", initial.id);
-        qc.invalidateQueries({ queryKey: ["exercises"] });
+        void qc.invalidateQueries({ queryKey: ["exercises"] });
       }
-      qc.invalidateQueries({ queryKey: ["exercise_library"] });
+      // atualiza a lista na hora, sem esperar nova consulta
+      qc.setQueriesData<LibraryExercise[]>({ queryKey: ["exercise_library"] }, (rows) => {
+        if (!rows) return rows;
+        const saved = data as LibraryExercise;
+        return initial ? rows.map((r) => (r.id === saved.id ? saved : r)) : [...rows, saved];
+      });
+      void qc.invalidateQueries({ queryKey: ["exercise_library"] });
       await onSaved(data as LibraryExercise);
     } catch (err) {
-      toast.error((err as Error).message);
+      const msg = (err as Error).message || "";
+      toast.error(
+        /exceeded|too large|413/i.test(msg)
+          ? "Arquivo grande demais para enviar."
+          : `Não foi possível salvar. ${msg}`,
+      );
     } finally {
       setBusy(false);
+      setStage("");
     }
   }
 
@@ -173,6 +230,8 @@ export function ExerciseForm({
                 size="sm"
                 variant="ghost"
                 onClick={() => {
+                  discardPending();
+                  setUploading(false);
                   setFile(null);
                   setPreview(null);
                   setRemoveMedia(true);
@@ -184,8 +243,8 @@ export function ExerciseForm({
           </div>
           <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={pick} />
         </div>
-        <p className="mt-1 text-[11px] text-muted-foreground">
-          Galeria, câmera ou arquivos · até {MAX_MEDIA_MB} MB
+        <p className="mt-1 text-[11px] text-muted-foreground" aria-live="polite">
+          {uploading ? "Enviando mídia… você pode continuar preenchendo." : file ? "Mídia enviada ✓" : `Galeria, câmera ou arquivos · até ${MAX_MEDIA_MB} MB`}
         </p>
       </div>
 
@@ -241,7 +300,7 @@ export function ExerciseForm({
         />
       </Field>
       <Button type="submit" className="w-full" disabled={busy}>
-        {busy ? "Salvando…" : submitLabel}
+        {stage === "upload" ? "Enviando mídia…" : stage === "save" ? "Salvando…" : submitLabel}
       </Button>
     </form>
   );
