@@ -1,29 +1,64 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { ArrowLeft, Check, Play, Plus, Trash2 } from "lucide-react";
-import { useList, useRemove, useSave, currentUserId, db } from "@/lib/db";
-import { shortDate, toISODate } from "@/lib/format";
-import { toast } from "sonner";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  Check,
+  ChevronDown,
+  Minus,
+  Pause,
+  Pencil,
+  Play,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { currentUserId, db, useList } from "@/lib/db";
+import { shortDate, toISODate } from "@/lib/format";
+import {
+  buildDraft,
+  elapsedMs,
+  exerciseHistory,
+  firstReps,
+  formatClock,
+  formatDecimal,
+  parseDecimal,
+  repsLabel,
+  sanitizeDecimalInput,
+  type DraftRow,
+  type LibraryExercise,
+  type Session,
+  type SetLog,
+  type WorkoutExercise,
+} from "@/lib/training";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { HabitCheck } from "@/components/habits/HabitCheck";
-import { RestTimer } from "@/components/treino/RestTimer";
 import {
-  Bar,
-  Field,
-  FormModal,
-  LoadingList,
-  PageHeader,
-  SectionTitle,
-} from "@/components/ui-kit";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { RestTimer } from "@/components/treino/RestTimer";
+import { ExerciseThumb } from "@/components/treino/ExerciseMedia";
+import { ExerciseHistory } from "@/components/treino/ExerciseHistory";
+import { ExerciseForm } from "@/components/treino/ExerciseForm";
+import { AddExerciseModal } from "@/components/treino/AddExerciseModal";
+import { Bar, Field, FormModal, LoadingList, PageHeader, SectionTitle } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/treino/$id")({
   head: () => ({
     meta: [
       { title: "Treino — Life Hub" },
-      { name: "description", content: "Registre séries, cargas e repetições do seu treino." },
+      { name: "description", content: "Registre carga e repetições de cada série do seu treino." },
       { property: "og:title", content: "Treino — Life Hub" },
       { property: "og:description", content: "Execute e registre seu treino no Life Hub." },
       { property: "og:type", content: "website" },
@@ -34,251 +69,429 @@ export const Route = createFileRoute("/_authenticated/treino/$id")({
 });
 
 type Workout = { id: string; name: string; note: string | null; focus?: string | null };
-type Exercise = {
-  id: string;
-  workout_id: string;
-  name: string;
-  target_sets: number;
-  target_reps: number;
-  rest_sec: number;
-  order_index: number;
-};
-type SetRow = {
-  id: string;
-  session_id: string;
-  exercise_id: string;
-  set_number: number;
-  weight: number;
-  reps: number;
-  date: string;
-  created_at: string;
-};
 type HabitRow = { id: string; name: string; category: string; archived: boolean; target: number };
+type PauseState = { pausedMs: number; pausedAt: number | null };
+
+const pauseKey = (sid: string) => `treino-pause-${sid}`;
+function readPause(sid: string): PauseState {
+  try {
+    return JSON.parse(localStorage.getItem(pauseKey(sid)) ?? "") as PauseState;
+  } catch {
+    return { pausedMs: 0, pausedAt: null };
+  }
+}
 
 function WorkoutDetail() {
   const { id } = Route.useParams();
-  const today = toISODate();
   const qc = useQueryClient();
 
   const workouts = useList<Workout>("workouts", { eq: { id } });
-  const exercises = useList<Exercise>("exercises", {
+  const exQ = useList<WorkoutExercise>("exercises", {
     eq: { workout_id: id },
     order: { column: "order_index" },
   });
-  const sets = useList<SetRow>("exercise_sets", {
-    eq: { date: today },
-    order: { column: "created_at", ascending: true },
+  const libQ = useList<LibraryExercise>("exercise_library", { order: { column: "name" } });
+  const sessQ = useList<Session>("workout_sessions", {
+    order: { column: "created_at", ascending: false },
   });
-  const history = useList<SetRow>("exercise_sets", {
+  const setsQ = useList<SetLog>("exercise_sets", {
     order: { column: "created_at", ascending: false },
   });
   const habits = useList<HabitRow>("habits", { eq: { archived: false } });
-  const saveExercise = useSave("exercises", "Exercício adicionado");
-  const removeExercise = useRemove("exercises", "Exercício removido");
-  const saveSet = useSave("exercise_sets");
-  const removeSet = useRemove("exercise_sets", "Série removida");
-
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", target_sets: "3", target_reps: "10", rest_sec: "60" });
-  const [entry, setEntry] = useState<Record<string, { weight: string; reps: string }>>({});
-  const entryRef = useRef<Record<string, { weight: string; reps: string }>>({});
-  const [finishing, setFinishing] = useState(false);
-  const [started, setStarted] = useState(false);
-  const [startedAt, setStartedAt] = useState<number | null>(null);
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const sessionIdRef = useRef<string | null>(null);
-  const sessionPromiseRef = useRef<Promise<string> | null>(null);
-  const saveQueueRef = useRef<Record<string, Promise<void>>>({});
-  const autoSetIdRef = useRef<Record<string, string>>({});
 
   const workout = (workouts.data ?? [])[0];
-  const list = exercises.data ?? [];
-  const todaySets = (sets.data ?? []).filter((s) => list.some((e) => e.id === s.exercise_id));
-  const doneCount = list.filter((e) => checked[e.id]).length;
-  const progress = list.length ? (doneCount / list.length) * 100 : 0;
+  const list = useMemo(() => (exQ.data ?? []).filter((e) => !e.archived), [exQ.data]);
+  const library = libQ.data ?? [];
+  const libById = useMemo(() => new Map(library.map((l) => [l.id, l])), [library]);
+  const sessions = sessQ.data ?? [];
+  const allSets = setsQ.data ?? [];
+  const active = sessions.find((s) => s.workout_id === id && s.started_at && !s.finished_at);
 
-  /** Última série registrada de cada exercício (qualquer data) — mantém a carga anterior. */
-  const lastByExercise = new Map<string, SetRow>();
-  for (const s of history.data ?? []) {
-    const previous = lastByExercise.get(s.exercise_id);
-    const currentTime = Date.parse(s.created_at ?? "") || 0;
-    const previousTime = Date.parse(previous?.created_at ?? "") || 0;
-    if (!previous || currentTime > previousTime) lastByExercise.set(s.exercise_id, s);
-  }
+  /* ---------- rascunho da sessão (séries) ---------- */
+  const [draft, setDraft] = useState<Record<string, DraftRow[]>>({});
+  const draftRef = useRef<Record<string, DraftRow[]>>({});
+  const draftSession = useRef<string | null>(null);
+  const queues = useRef<Record<string, Promise<void>>>({});
+  const timers = useRef<Record<string, number>>({});
+  const listKey = list.map((e) => e.id).join();
 
-  /** Garante uma sessão válida antes de salvar qualquer série. */
-  async function ensureSession() {
-    if (sessionIdRef.current) return sessionIdRef.current;
-    if (sessionPromiseRef.current) return sessionPromiseRef.current;
-
-    sessionPromiseRef.current = (async () => {
-      const { data: existing, error: lookupError } = await db
-        .from("workout_sessions")
-        .select("id")
-        .eq("workout_id", id)
-        .eq("date", today)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (lookupError) throw lookupError;
-      if (existing?.id) {
-        sessionIdRef.current = existing.id;
-        return existing.id as string;
+  useEffect(() => {
+    if (!active) {
+      if (draftSession.current) {
+        draftSession.current = null;
+        draftRef.current = {};
+        setDraft({});
       }
-
-      const user_id = await currentUserId();
-      const { data: created, error: createError } = await db
-        .from("workout_sessions")
-        .insert({ user_id, workout_id: id, date: today })
-        .select("id")
-        .single();
-      if (createError) throw createError;
-      sessionIdRef.current = created.id;
-      qc.invalidateQueries({ queryKey: ["workout_sessions"] });
-      return created.id as string;
-    })();
-
-    try {
-      return await sessionPromiseRef.current;
-    } finally {
-      sessionPromiseRef.current = null;
-    }
-  }
-
-  /**
-   * Salva o que foi digitado (kg/reps) mesmo sem clicar em "+":
-   * atualiza a última série do dia ou cria a primeira.
-   */
-  async function persistEntryNow(exId: string, value: { weight: string; reps: string }) {
-    const weight = Number(value.weight);
-    const reps = Number(value.reps);
-    if (!value.weight && !value.reps) return;
-    if (!Number.isFinite(weight) || !Number.isFinite(reps)) return;
-    const session_id = await ensureSession();
-
-    const draftId = autoSetIdRef.current[exId];
-    if (draftId) {
-      const { error } = await db.from("exercise_sets").update({ weight, reps }).eq("id", draftId);
-      if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["exercise_sets"] });
       return;
     }
+    if (!setsQ.data || !sessQ.data) return;
+    if (draftSession.current !== active.id) {
+      draftSession.current = active.id;
+      draftRef.current = {};
+    }
+    const next = { ...draftRef.current };
+    let changed = false;
+    for (const ex of list) {
+      if (next[ex.id]) continue;
+      const current = setsQ.data.filter((s) => s.session_id === active.id && s.exercise_id === ex.id);
+      const prev = exerciseHistory(setsQ.data, sessQ.data, ex, active.id)[0]?.sets;
+      next[ex.id] = buildDraft(ex.target_sets, ex.target_reps, current, prev);
+      changed = true;
+    }
+    if (changed) {
+      draftRef.current = next;
+      setDraft(next);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active?.id, setsQ.data, sessQ.data, listKey]);
 
-    // Já existem séries registradas hoje: não altera nenhuma — use o botão "+".
-    const { count, error: countError } = await db
-      .from("exercise_sets")
-      .select("id", { count: "exact", head: true })
-      .eq("session_id", session_id)
-      .eq("exercise_id", exId);
-    if (countError) throw countError;
-    if ((count ?? 0) > 0) return;
-
-    const user_id = await currentUserId();
-    const { data: created, error } = await db
-      .from("exercise_sets")
-      .insert({
-        user_id,
-        session_id,
-        exercise_id: exId,
-        set_number: 1,
-        weight,
-        reps,
-        date: today,
-      })
-      .select("id")
-      .single();
-    if (error) throw error;
-    autoSetIdRef.current[exId] = created.id as string;
-    await qc.invalidateQueries({ queryKey: ["exercise_sets"] });
+  function commit(exId: string, rows: DraftRow[]) {
+    draftRef.current = { ...draftRef.current, [exId]: rows };
+    setDraft(draftRef.current);
   }
 
-  /** Evita que os blurs de Kg e Reps criem duas séries ao mesmo tempo. */
-  function persistEntry(exId: string, value: { weight: string; reps: string }) {
-    const previous = saveQueueRef.current[exId] ?? Promise.resolve();
-    const next = previous.catch(() => undefined).then(() => persistEntryNow(exId, value));
-    saveQueueRef.current[exId] = next;
+  function enqueue(exId: string, job: () => Promise<void>) {
+    const next = (queues.current[exId] ?? Promise.resolve())
+      .catch(() => undefined)
+      .then(job)
+      .catch((e: Error) => {
+        toast.error(`Não foi possível salvar: ${e.message}`);
+      });
+    queues.current[exId] = next;
     return next;
   }
 
-  async function persistAllEntries() {
-    for (const [exId, value] of Object.entries(entryRef.current)) {
-      try {
-        await persistEntry(exId, value);
-      } catch {
-        /* erro já sinalizado pelo toast da mutação */
+  function saveRow(ex: WorkoutExercise, idx: number) {
+    const session = active;
+    if (!session) return Promise.resolve();
+    return enqueue(ex.id, async () => {
+      const row = draftRef.current[ex.id]?.[idx];
+      if (!row) return;
+      const values = {
+        weight: parseDecimal(row.weight) ?? 0,
+        reps: Number.parseInt(row.reps, 10) || 0,
+        done: row.done,
+      };
+      if (row.id) {
+        const { error } = await db.from("exercise_sets").update(values).eq("id", row.id);
+        if (error) throw error;
+        return;
       }
-    }
+      const { data, error } = await db
+        .from("exercise_sets")
+        .insert({
+          ...values,
+          user_id: await currentUserId(),
+          session_id: session.id,
+          exercise_id: ex.id,
+          library_id: ex.library_id,
+          set_number: idx + 1,
+          date: session.date,
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      const rows = [...(draftRef.current[ex.id] ?? [])];
+      if (rows[idx]) {
+        rows[idx] = { ...rows[idx]!, id: data.id as string };
+        commit(ex.id, rows);
+      }
+    });
   }
 
+  function scheduleSave(ex: WorkoutExercise, idx: number, delay = 600) {
+    const key = `${ex.id}:${idx}`;
+    window.clearTimeout(timers.current[key]);
+    timers.current[key] = window.setTimeout(() => {
+      delete timers.current[key];
+      void saveRow(ex, idx);
+    }, delay);
+  }
+
+  async function flushAll() {
+    const pending = Object.keys(timers.current);
+    for (const key of pending) {
+      window.clearTimeout(timers.current[key]);
+      delete timers.current[key];
+      const [exId, idx] = key.split(":");
+      const ex = list.find((e) => e.id === exId);
+      if (ex) void saveRow(ex, Number(idx));
+    }
+    await Promise.all(Object.values(queues.current));
+  }
+
+  // salva imediatamente se o app for para segundo plano / aba fechada
+  const flushRef = useRef(flushAll);
+  flushRef.current = flushAll;
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden") void flushRef.current();
+    };
+    const onPageHide = () => void flushRef.current();
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", onPageHide);
+      void flushRef.current();
+    };
+  }, []);
+
+  function updateRow(ex: WorkoutExercise, idx: number, patch: Partial<DraftRow>, immediate = false) {
+    const rows = [...(draftRef.current[ex.id] ?? [])];
+    if (!rows[idx]) return;
+    rows[idx] = { ...rows[idx]!, ...patch };
+    commit(ex.id, rows);
+    scheduleSave(ex, idx, immediate ? 0 : 600);
+  }
+
+  function addRow(ex: WorkoutExercise) {
+    const rows = [...(draftRef.current[ex.id] ?? [])];
+    const last = rows[rows.length - 1];
+    rows.push({ weight: last?.weight ?? "", reps: last?.reps ?? String(ex.target_reps), done: false });
+    commit(ex.id, rows);
+    scheduleSave(ex, rows.length - 1, 0);
+  }
+
+  function removeRow(ex: WorkoutExercise) {
+    const rows = [...(draftRef.current[ex.id] ?? [])];
+    if (rows.length <= 1) return;
+    const idx = rows.length - 1;
+    window.clearTimeout(timers.current[`${ex.id}:${idx}`]);
+    delete timers.current[`${ex.id}:${idx}`];
+    commit(ex.id, rows.slice(0, -1));
+    void enqueue(ex.id, async () => {
+      // id pode ter chegado depois de um insert pendente
+      const { error } = await db
+        .from("exercise_sets")
+        .delete()
+        .eq("session_id", active!.id)
+        .eq("exercise_id", ex.id)
+        .eq("set_number", idx + 1);
+      if (error) throw error;
+    });
+  }
+
+  /* ---------- cronômetro / pausa ---------- */
+  const [pause, setPause] = useState<PauseState>({ pausedMs: 0, pausedAt: null });
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (active) setPause(readPause(active.id));
+  }, [active?.id]);
+  useEffect(() => {
+    if (!active) return;
+    const t = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(t);
+  }, [active?.id]);
+
+  function togglePause() {
+    if (!active) return;
+    const next: PauseState = pause.pausedAt
+      ? { pausedMs: pause.pausedMs + (Date.now() - pause.pausedAt), pausedAt: null }
+      : { ...pause, pausedAt: Date.now() };
+    localStorage.setItem(pauseKey(active.id), JSON.stringify(next));
+    setPause(next);
+  }
+
+  const elapsed = active?.started_at
+    ? elapsedMs(active.started_at, pause.pausedMs, pause.pausedAt, now)
+    : 0;
+
+  /* ---------- iniciar / finalizar ---------- */
+  const [busy, setBusy] = useState(false);
+  const [confirmFinish, setConfirmFinish] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+
   async function start() {
-    setFinishing(true);
+    setBusy(true);
     try {
-      await ensureSession();
-      setStarted(true);
-      setStartedAt(Date.now());
-      setChecked({});
+      const today = toISODate();
+      const { error } = await db.from("workout_sessions").insert({
+        user_id: await currentUserId(),
+        workout_id: id,
+        date: today,
+        started_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["workout_sessions"] });
       toast.success("Treino iniciado. Bom treino!");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
-      setFinishing(false);
+      setBusy(false);
     }
   }
 
-
-  /** Marca o hábito de treino do dia como concluído, se existir. */
-  async function markWorkoutHabit(user_id: string) {
+  async function markWorkoutHabit(user_id: string, date: string) {
     const candidates = (habits.data ?? []).filter(
       (h) =>
-        h.category?.toLowerCase() === "treino" ||
-        /trein|academ|muscul|exerc/i.test(h.name ?? ""),
+        h.category?.toLowerCase() === "treino" || /trein|academ|muscul|exerc/i.test(h.name ?? ""),
     );
     for (const h of candidates) {
       const { data: existing } = await db
         .from("habit_completions")
         .select("id")
         .eq("habit_id", h.id)
-        .eq("date", today)
+        .eq("date", date)
         .maybeSingle();
       if (existing) continue;
       await db
         .from("habit_completions")
-        .insert({ habit_id: h.id, date: today, value: h.target ?? 1, user_id });
+        .insert({ habit_id: h.id, date, value: h.target ?? 1, user_id });
     }
     return candidates.length;
   }
 
   async function finish() {
-    setFinishing(true);
+    if (!active) return;
+    setBusy(true);
     try {
-      await persistAllEntries();
+      await flushAll();
       const user_id = await currentUserId();
-      const session_id = await ensureSession();
-      const duration = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 60000)) : null;
-
+      const duration = Math.max(1, Math.round(elapsed / 60000));
       const { error } = await db
         .from("workout_sessions")
-        .update({ ...(duration ? { duration_min: duration } : {}) })
-        .eq("id", session_id)
-        .eq("user_id", user_id);
+        .update({ finished_at: new Date().toISOString(), duration_min: duration })
+        .eq("id", active.id);
       if (error) throw error;
-      const marked = await markWorkoutHabit(user_id);
-      qc.invalidateQueries({ queryKey: ["workout_sessions"] });
-      qc.invalidateQueries({ queryKey: ["habit_completions"] });
-      setStarted(false);
-      setStartedAt(null);
-      setChecked({});
-      toast.success(
-        marked > 0 ? "Treino salvo e hábito de treino marcado!" : "Treino salvo como realizado!",
-      );
+      localStorage.removeItem(pauseKey(active.id));
+      const marked = await markWorkoutHabit(user_id, active.date);
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["workout_sessions"] }),
+        qc.invalidateQueries({ queryKey: ["exercise_sets"] }),
+        qc.invalidateQueries({ queryKey: ["habit_completions"] }),
+      ]);
+      toast.success(marked > 0 ? "Treino salvo e hábito marcado!" : "Treino salvo!");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
-      setFinishing(false);
+      setBusy(false);
+      setConfirmFinish(false);
     }
   }
 
-  if (workouts.isLoading) return <LoadingList />;
+  async function discard() {
+    if (!active) return;
+    setBusy(true);
+    try {
+      Object.values(timers.current).forEach((t) => window.clearTimeout(t));
+      timers.current = {};
+      await Promise.all(Object.values(queues.current));
+      const { error } = await db.from("workout_sessions").delete().eq("id", active.id);
+      if (error) throw error;
+      localStorage.removeItem(pauseKey(active.id));
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["workout_sessions"] }),
+        qc.invalidateQueries({ queryKey: ["exercise_sets"] }),
+      ]);
+      toast.success("Sessão descartada");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+      setConfirmDiscard(false);
+    }
+  }
+
+  /* ---------- gerenciar exercícios ---------- */
+  const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<WorkoutExercise | null>(null);
+  const [editLib, setEditLib] = useState<LibraryExercise | null>(null);
+  const [removing, setRemoving] = useState<WorkoutExercise | null>(null);
+  const [pForm, setPForm] = useState({ sets: "", reps: "", rest: "", note: "" });
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  async function addFromLibrary(
+    lib: LibraryExercise,
+    p: { sets: number; reps: string; rest: number; note: string },
+  ) {
+    const { error } = await db.from("exercises").insert({
+      user_id: await currentUserId(),
+      workout_id: id,
+      library_id: lib.id,
+      name: lib.name,
+      target_sets: p.sets,
+      target_reps: firstReps(p.reps),
+      target_reps_text: p.reps,
+      rest_sec: p.rest,
+      note: p.note || null,
+      order_index: list.length ? Math.max(...list.map((e) => e.order_index)) + 1 : 0,
+    });
+    if (error) {
+      toast.error(error.message);
+      throw error;
+    }
+    await qc.invalidateQueries({ queryKey: ["exercises"] });
+    toast.success("Exercício adicionado");
+  }
+
+  function openEdit(ex: WorkoutExercise) {
+    setEditing(ex);
+    setPForm({
+      sets: String(ex.target_sets),
+      reps: repsLabel(ex),
+      rest: String(ex.rest_sec),
+      note: ex.note ?? "",
+    });
+  }
+
+  async function savePrescription(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editing) return;
+    const { error } = await db
+      .from("exercises")
+      .update({
+        target_sets: Math.max(1, Number(pForm.sets) || 1),
+        target_reps: firstReps(pForm.reps),
+        target_reps_text: pForm.reps.trim() || null,
+        rest_sec: Math.max(0, Number(pForm.rest) || 0),
+        note: pForm.note.trim() || null,
+      })
+      .eq("id", editing.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await qc.invalidateQueries({ queryKey: ["exercises"] });
+    toast.success("Prescrição atualizada");
+    setEditing(null);
+  }
+
+  async function archive(ex: WorkoutExercise) {
+    const { error } = await db.from("exercises").update({ archived: true }).eq("id", ex.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await qc.invalidateQueries({ queryKey: ["exercises"] });
+    toast.success("Removido do treino (continua na biblioteca)");
+    setRemoving(null);
+  }
+
+  async function move(ex: WorkoutExercise, dir: -1 | 1) {
+    const i = list.findIndex((e) => e.id === ex.id);
+    const j = i + dir;
+    if (j < 0 || j >= list.length) return;
+    const order = [...list];
+    [order[i], order[j]] = [order[j]!, order[i]!];
+    await Promise.all(
+      order.map((e, idx) =>
+        e.order_index === idx ? null : db.from("exercises").update({ order_index: idx }).eq("id", e.id),
+      ),
+    );
+    await qc.invalidateQueries({ queryKey: ["exercises"] });
+  }
+
+  if (workouts.isLoading || exQ.isLoading) return <LoadingList />;
+
+  const totalSets = active ? list.reduce((a, e) => a + (draft[e.id]?.length ?? 0), 0) : 0;
+  const doneSets = active
+    ? list.reduce((a, e) => a + (draft[e.id]?.filter((r) => r.done).length ?? 0), 0)
+    : 0;
+  const currentEx = active
+    ? list.find((e) => (draft[e.id] ?? []).some((r) => !r.done))?.id
+    : undefined;
+  const pastSessions = sessions.filter((s) => s.workout_id === id && s.finished_at).slice(0, 8);
 
   return (
     <>
@@ -290,249 +503,392 @@ function WorkoutDetail() {
       </Link>
       <PageHeader
         title={workout?.name ?? "Treino"}
-        subtitle={workout?.focus || workout?.note || undefined}
+        subtitle={workout?.focus || workout?.note || `${list.length} exercícios`}
         action={
-          started ? (
-            <Button onClick={finish} disabled={finishing}>
-              <Check className="size-4" /> Finalizar treino
-            </Button>
-          ) : (
-            <Button onClick={start} disabled={finishing}>
+          !active && (
+            <Button onClick={start} disabled={busy || list.length === 0}>
               <Play className="size-4" /> Iniciar treino
             </Button>
           )
         }
       />
 
-      {started && (
-        <section className="surface mb-6 px-4 py-4">
-          <div className="mb-2 flex items-baseline justify-between">
-            <p className="text-sm font-medium">Treino em andamento</p>
-            <span className="num text-sm text-muted-foreground">
-              {doneCount}/{list.length} · {Math.round(progress)}%
+      {active && (
+        <section className="surface sticky top-2 z-20 mb-5 px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                {pause.pausedAt ? "Pausado" : "Em andamento"}
+              </p>
+              <p className="num text-2xl font-semibold leading-tight">{formatClock(elapsed)}</p>
+            </div>
+            <Button
+              size="icon"
+              variant="secondary"
+              onClick={togglePause}
+              aria-label={pause.pausedAt ? "Retomar" : "Pausar"}
+            >
+              {pause.pausedAt ? <Play className="size-4" /> : <Pause className="size-4" />}
+            </Button>
+            <Button onClick={() => setConfirmFinish(true)} disabled={busy}>
+              <Check className="size-4" /> Finalizar
+            </Button>
+          </div>
+          <div className="mt-2 flex items-center gap-3">
+            <div className="flex-1">
+              <Bar value={totalSets ? (doneSets / totalSets) * 100 : 0} />
+            </div>
+            <span className="num text-xs text-muted-foreground">
+              {doneSets}/{totalSets} séries
             </span>
           </div>
-          <Bar value={progress} />
-          <p className="mt-2 text-xs text-muted-foreground">
-            Marque cada exercício ao terminar e clique em “Finalizar treino”.
-          </p>
         </section>
       )}
 
       <SectionTitle
         action={
-          <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+          <Button variant="ghost" size="sm" onClick={() => setAdding(true)}>
             <Plus className="size-4" /> Exercício
           </Button>
         }
       >
-        Exercícios · {todaySets.length} séries hoje
+        Exercícios
       </SectionTitle>
 
       {list.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Adicione exercícios para registrar suas séries.
+          Toque em “+ Exercício” para montar este treino.
         </p>
       ) : (
         <ul className="space-y-3">
-          {list.map((ex) => {
-            const exSets = todaySets
-              .filter((s) => s.exercise_id === ex.id)
-              .sort((a, b) => a.set_number - b.set_number);
-            // A série de hoje exibida por último prevalece; sem série hoje, usa o histórico.
-            const last = exSets[exSets.length - 1] ?? lastByExercise.get(ex.id);
-            const value =
-              entry[ex.id] ??
-              ({
-                weight: last ? String(Number(last.weight)) : "",
-                reps: String(last?.reps ?? ex.target_reps),
-              } as { weight: string; reps: string });
-            const isDone = !!checked[ex.id];
+          {list.map((ex, i) => {
+            const lib = ex.library_id ? libById.get(ex.library_id) : undefined;
+            const history = exerciseHistory(allSets, sessions, ex, active?.id);
+            const prev = history[0];
+            const rows = draft[ex.id] ?? [];
+            const isCurrent = currentEx === ex.id;
+            const allDone = active && rows.length > 0 && rows.every((r) => r.done);
             return (
-              <li key={ex.id} className="surface px-4 py-4">
-                <div className="flex items-center gap-3">
-                  {started && (
-                    <HabitCheck
-                      checked={isDone}
-                      label={ex.name}
-                      onToggle={() => setChecked({ ...checked, [ex.id]: !isDone })}
-                    />
-                  )}
+              <li
+                key={ex.id}
+                className={cn(
+                  "surface px-4 py-4 transition-shadow",
+                  isCurrent && "ring-2 ring-primary/60",
+                  allDone && "opacity-80",
+                )}
+              >
+                <div className="flex gap-3">
                   <div className="min-w-0 flex-1">
-                    <p
-                      className={cn(
-                        "truncate text-sm font-medium",
-                        isDone && "text-muted-foreground line-through",
-                      )}
-                    >
-                      {ex.name}
+                    <p className="flex items-center gap-1.5 text-[15px] font-semibold leading-snug">
+                      {allDone && <Check className="size-4 shrink-0 text-primary" />}
+                      <span className="break-words">{ex.name}</span>
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {ex.target_sets}×{ex.target_reps} · descanso {ex.rest_sec}s
+                    <p className="num mt-1 text-xs text-muted-foreground">
+                      {ex.target_sets} séries · {repsLabel(ex)} reps · {ex.rest_sec}s descanso
                     </p>
-                    {last && (
-                      <p className="num mt-0.5 text-xs text-muted-foreground">
-                        Última vez: {Number(last.weight)}kg × {last.reps} ({shortDate(last.date)})
+                    {(lib?.muscle_group || lib?.equipment) && (
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {[lib.muscle_group, lib.equipment].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
+                    {ex.note && <p className="mt-1 text-xs italic text-muted-foreground">{ex.note}</p>}
+                    {prev && (
+                      <p className="num mt-1.5 text-xs">
+                        <span className="text-muted-foreground">Última ({shortDate(prev.date)}): </span>
+                        {prev.sets.map((s) => `${formatDecimal(s.weight)}×${s.reps}`).join(" · ")}
                       </p>
                     )}
                   </div>
-                  {started && <RestTimer defaultSec={ex.rest_sec} />}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Excluir exercício"
-                    onClick={() => removeExercise.mutate(ex.id)}
-                  >
-                    <Trash2 className="size-4 text-muted-foreground" />
-                  </Button>
+                  <ExerciseThumb path={lib?.media_path} type={lib?.media_type} name={ex.name} />
                 </div>
 
-                {exSets.length > 0 && (
-                  <ul className="mt-3 flex flex-wrap gap-1.5">
-                    {exSets.map((s) => (
-                      <li
-                        key={s.id}
-                        className="num flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px]"
+                {active && rows.length > 0 && (
+                  <div className="mt-3">
+                    <div className="grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_2.5rem] items-center gap-2 px-1 pb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      <span>Série</span>
+                      <span>Anterior</span>
+                      <span>Kg</span>
+                      <span>Reps</span>
+                      <span className="text-center">✓</span>
+                    </div>
+                    <ul className="space-y-1">
+                      {rows.map((r, idx) => {
+                        const ref = prev?.sets[idx];
+                        return (
+                          <li
+                            key={idx}
+                            className={cn(
+                              "grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_2.5rem] items-center gap-2 rounded-lg px-1 py-1 transition-colors",
+                              r.done && "bg-primary/10",
+                            )}
+                          >
+                            <span className="num text-center text-sm font-medium">{idx + 1}</span>
+                            <span className="num truncate text-xs text-muted-foreground">
+                              {ref ? `${formatDecimal(ref.weight)}×${ref.reps}` : "—"}
+                            </span>
+                            <Input
+                              inputMode="decimal"
+                              aria-label={`Kg da série ${idx + 1}`}
+                              value={r.weight}
+                              placeholder="0"
+                              onFocus={(e) => e.currentTarget.select()}
+                              onChange={(e) =>
+                                updateRow(ex, idx, { weight: sanitizeDecimalInput(e.target.value) })
+                              }
+                              className="num h-10 px-2 text-center"
+                            />
+                            <Input
+                              inputMode="numeric"
+                              aria-label={`Repetições da série ${idx + 1}`}
+                              value={r.reps}
+                              placeholder="0"
+                              onFocus={(e) => e.currentTarget.select()}
+                              onChange={(e) =>
+                                updateRow(ex, idx, { reps: e.target.value.replace(/\D/g, "").slice(0, 3) })
+                              }
+                              className="num h-10 px-2 text-center"
+                            />
+                            <button
+                              type="button"
+                              aria-label={`Concluir série ${idx + 1}`}
+                              aria-pressed={r.done}
+                              onClick={() => updateRow(ex, idx, { done: !r.done }, true)}
+                              className={cn(
+                                "mx-auto flex size-9 items-center justify-center rounded-lg border transition-colors",
+                                r.done
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border text-muted-foreground",
+                              )}
+                            >
+                              <Check className="size-4" />
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => addRow(ex)}>
+                        <Plus className="size-4" /> Série
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeRow(ex)}
+                        disabled={rows.length <= 1}
                       >
-                        <span className="text-muted-foreground">{s.set_number}</span>
-                        <span>
-                          {Number(s.weight)}kg×{s.reps}
-                        </span>
-                        <button
-                          aria-label={`Remover série ${s.set_number}`}
-                          className="text-muted-foreground hover:text-destructive"
-                          onClick={() => removeSet.mutate(s.id)}
-                        >
-                          ×
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                        <Minus className="size-4" /> Série
+                      </Button>
+                      <div className="ml-auto">
+                        <RestTimer defaultSec={ex.rest_sec} />
+                      </div>
+                    </div>
+                  </div>
                 )}
 
-                <form
-                  className="mt-3 flex items-end gap-2"
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    const session_id = await ensureSession();
-                    await (saveQueueRef.current[ex.id] ?? Promise.resolve()).catch(() => undefined);
-                    delete autoSetIdRef.current[ex.id];
-                    await saveSet.mutateAsync({
-                      session_id,
-                      exercise_id: ex.id,
-                      set_number: exSets.length + 1,
-                      weight: Number(value.weight) || 0,
-                      reps: Number(value.reps) || 0,
-                      date: today,
-                    });
-                    setEntry({ ...entry, [ex.id]: { weight: value.weight, reps: value.reps } });
-                  }}
-                >
-                  <label className="flex-1 space-y-1">
-                    <span className="text-[11px] font-medium text-muted-foreground">Kg</span>
-                    <Input
-                      type="number"
-                      step="0.5"
-                      min={0}
-                      aria-label="Peso em quilos"
-                      value={value.weight}
-                      onChange={(e) => {
-                        const next = { ...value, weight: e.target.value };
-                        entryRef.current[ex.id] = next;
-                        setEntry((current) => ({ ...current, [ex.id]: next }));
-                      }}
-                      onBlur={() => persistEntry(ex.id, entryRef.current[ex.id] ?? value)}
-                      className="h-9"
+                <div className="mt-3 flex items-center gap-1 border-t border-border/60 pt-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="-ml-2 text-muted-foreground"
+                    onClick={() => setExpanded({ ...expanded, [ex.id]: !expanded[ex.id] })}
+                    aria-expanded={!!expanded[ex.id]}
+                  >
+                    Histórico
+                    <ChevronDown
+                      className={cn("size-4 transition-transform", expanded[ex.id] && "rotate-180")}
                     />
-                  </label>
-                  <label className="flex-1 space-y-1">
-                    <span className="text-[11px] font-medium text-muted-foreground">Reps</span>
-                    <Input
-                      type="number"
-                      min={0}
-                      aria-label="Repetições"
-                      value={value.reps}
-                      onChange={(e) => {
-                        const next = { ...value, reps: e.target.value };
-                        entryRef.current[ex.id] = next;
-                        setEntry((current) => ({ ...current, [ex.id]: next }));
-                      }}
-                      onBlur={() => persistEntry(ex.id, entryRef.current[ex.id] ?? value)}
-                      className="h-9"
-                    />
-                  </label>
-
-                  <Button type="submit" size="sm" variant="secondary" className="h-9">
-                    <Plus className="size-4" />
                   </Button>
-                </form>
+                  <div className="ml-auto flex items-center">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label="Subir"
+                      disabled={i === 0}
+                      onClick={() => move(ex, -1)}
+                    >
+                      <ArrowUp className="size-4 text-muted-foreground" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label="Descer"
+                      disabled={i === list.length - 1}
+                      onClick={() => move(ex, 1)}
+                    >
+                      <ArrowDown className="size-4 text-muted-foreground" />
+                    </Button>
+                    <Button size="icon" variant="ghost" aria-label="Editar" onClick={() => openEdit(ex)}>
+                      <Pencil className="size-4 text-muted-foreground" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label="Remover do treino"
+                      onClick={() => setRemoving(ex)}
+                    >
+                      <Trash2 className="size-4 text-muted-foreground" />
+                    </Button>
+                  </div>
+                </div>
+                {expanded[ex.id] && (
+                  <div className="pt-2 animate-in fade-in-0 slide-in-from-top-1">
+                    {lib?.description && (
+                      <p className="mb-2 text-xs text-muted-foreground">{lib.description}</p>
+                    )}
+                    <ExerciseHistory history={history} />
+                  </div>
+                )}
               </li>
             );
           })}
         </ul>
       )}
 
-      {started && list.length > 0 && (
-        <Button className="mt-6 w-full" size="lg" onClick={finish} disabled={finishing}>
-          <Check className="size-4" /> Finalizar treino
-        </Button>
+      {active && (
+        <div className="mt-6 flex gap-2">
+          <Button variant="ghost" onClick={() => setConfirmDiscard(true)} disabled={busy}>
+            <X className="size-4" /> Descartar
+          </Button>
+          <Button className="flex-1" size="lg" onClick={() => setConfirmFinish(true)} disabled={busy}>
+            <Check className="size-4" /> Finalizar treino
+          </Button>
+        </div>
       )}
 
-      <FormModal open={open} onOpenChange={setOpen} title="Novo exercício">
-        <form
-          className="space-y-4"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            await saveExercise.mutateAsync({
-              workout_id: id,
-              name: form.name.trim(),
-              target_sets: Number(form.target_sets) || 3,
-              target_reps: Number(form.target_reps) || 10,
-              rest_sec: Number(form.rest_sec) || 60,
-              order_index: list.length,
-            });
-            setForm({ name: "", target_sets: "3", target_reps: "10", rest_sec: "60" });
-            setOpen(false);
-          }}
-        >
-          <Field label="Nome">
-            <Input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-            />
-          </Field>
+      {pastSessions.length > 0 && (
+        <>
+          <SectionTitle>Sessões anteriores</SectionTitle>
+          <ul className="space-y-1.5">
+            {pastSessions.map((s) => {
+              const ss = allSets.filter((x) => x.session_id === s.id && x.done);
+              const vol = ss.reduce((a, x) => a + Number(x.weight) * x.reps, 0);
+              return (
+                <li key={s.id} className="surface flex items-center justify-between px-4 py-3 text-sm">
+                  <span className="num">{shortDate(s.date)}</span>
+                  <span className="num text-xs text-muted-foreground">
+                    {ss.length} séries · {formatDecimal(Math.round(vol))} kg vol.
+                    {s.duration_min ? ` · ${s.duration_min} min` : ""}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+
+      <AddExerciseModal
+        key={adding ? "open" : "closed"}
+        open={adding}
+        onOpenChange={setAdding}
+        library={library}
+        onAdd={addFromLibrary}
+      />
+
+      <FormModal open={!!editing} onOpenChange={(v) => !v && setEditing(null)} title={editing?.name ?? ""}>
+        <form className="space-y-4" onSubmit={savePrescription}>
+          <p className="text-xs text-muted-foreground">Vale só para este treino.</p>
           <div className="grid grid-cols-3 gap-2">
             <Field label="Séries">
               <Input
-                type="number"
-                min={1}
-                value={form.target_sets}
-                onChange={(e) => setForm({ ...form, target_sets: e.target.value })}
+                inputMode="numeric"
+                value={pForm.sets}
+                onChange={(e) => setPForm({ ...pForm, sets: e.target.value.replace(/\D/g, "") })}
               />
             </Field>
             <Field label="Reps">
-              <Input
-                type="number"
-                min={1}
-                value={form.target_reps}
-                onChange={(e) => setForm({ ...form, target_reps: e.target.value })}
-              />
+              <Input value={pForm.reps} onChange={(e) => setPForm({ ...pForm, reps: e.target.value })} />
             </Field>
             <Field label="Descanso (s)">
               <Input
-                type="number"
-                min={0}
-                value={form.rest_sec}
-                onChange={(e) => setForm({ ...form, rest_sec: e.target.value })}
+                inputMode="numeric"
+                value={pForm.rest}
+                onChange={(e) => setPForm({ ...pForm, rest: e.target.value.replace(/\D/g, "") })}
               />
             </Field>
           </div>
-          <Button type="submit" className="w-full" disabled={saveExercise.isPending}>
-            Adicionar exercício
+          <Field label="Observação">
+            <Input value={pForm.note} onChange={(e) => setPForm({ ...pForm, note: e.target.value })} />
+          </Field>
+          <Button type="submit" className="w-full">
+            Salvar prescrição
           </Button>
+          {editing?.library_id && libById.get(editing.library_id) && (
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              onClick={() => {
+                setEditLib(libById.get(editing.library_id!)!);
+                setEditing(null);
+              }}
+            >
+              Editar nome, mídia e informações
+            </Button>
+          )}
         </form>
       </FormModal>
+
+      <FormModal open={!!editLib} onOpenChange={(v) => !v && setEditLib(null)} title="Editar exercício">
+        {editLib && (
+          <ExerciseForm
+            initial={editLib}
+            library={library}
+            onSaved={() => {
+              toast.success("Exercício atualizado em todos os treinos");
+              setEditLib(null);
+            }}
+          />
+        )}
+      </FormModal>
+
+      <AlertDialog open={!!removing} onOpenChange={(v) => !v && setRemoving(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover “{removing?.name}” deste treino?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O exercício continua na sua biblioteca e o histórico de cargas é mantido.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => removing && archive(removing)}>Remover</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmFinish} onOpenChange={setConfirmFinish}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Finalizar treino?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {doneSets === 0
+                ? "Nenhuma série foi marcada como concluída. Só as séries marcadas entram no histórico."
+                : `${doneSets} de ${totalSets} séries concluídas em ${formatClock(elapsed)}. Só as séries marcadas entram no histórico.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuar treinando</AlertDialogCancel>
+            <AlertDialogAction onClick={finish} disabled={busy}>
+              Finalizar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmDiscard} onOpenChange={setConfirmDiscard}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Descartar esta sessão?</AlertDialogTitle>
+            <AlertDialogDescription>
+              As séries registradas hoje nesta sessão serão apagadas. Sessões anteriores não mudam.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={discard}>Descartar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

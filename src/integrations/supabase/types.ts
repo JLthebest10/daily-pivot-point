@@ -535,12 +535,62 @@ export type Database = {
         }
         Relationships: []
       }
+      exercise_library: {
+        Row: {
+          created_at: string
+          default_reps: string
+          default_rest_sec: number
+          default_sets: number
+          description: string | null
+          equipment: string | null
+          id: string
+          media_path: string | null
+          media_type: string | null
+          muscle_group: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_reps?: string
+          default_rest_sec?: number
+          default_sets?: number
+          description?: string | null
+          equipment?: string | null
+          id?: string
+          media_path?: string | null
+          media_type?: string | null
+          muscle_group?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_reps?: string
+          default_rest_sec?: number
+          default_sets?: number
+          description?: string | null
+          equipment?: string | null
+          id?: string
+          media_path?: string | null
+          media_type?: string | null
+          muscle_group?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       exercise_sets: {
         Row: {
           created_at: string
           date: string
+          done: boolean
           exercise_id: string
           id: string
+          library_id: string | null
           note: string | null
           reps: number
           rir: number | null
@@ -552,8 +602,10 @@ export type Database = {
         Insert: {
           created_at?: string
           date?: string
+          done?: boolean
           exercise_id: string
           id?: string
+          library_id?: string | null
           note?: string | null
           reps?: number
           rir?: number | null
@@ -565,8 +617,10 @@ export type Database = {
         Update: {
           created_at?: string
           date?: string
+          done?: boolean
           exercise_id?: string
           id?: string
+          library_id?: string | null
           note?: string | null
           reps?: number
           rir?: number | null
@@ -584,6 +638,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "exercise_sets_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_library"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "exercise_sets_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -594,39 +655,58 @@ export type Database = {
       }
       exercises: {
         Row: {
+          archived: boolean
           created_at: string
           id: string
+          library_id: string | null
           name: string
+          note: string | null
           order_index: number
           rest_sec: number
           target_reps: number
+          target_reps_text: string | null
           target_sets: number
           user_id: string
           workout_id: string
         }
         Insert: {
+          archived?: boolean
           created_at?: string
           id?: string
+          library_id?: string | null
           name: string
+          note?: string | null
           order_index?: number
           rest_sec?: number
           target_reps?: number
+          target_reps_text?: string | null
           target_sets?: number
           user_id: string
           workout_id: string
         }
         Update: {
+          archived?: boolean
           created_at?: string
           id?: string
+          library_id?: string | null
           name?: string
+          note?: string | null
           order_index?: number
           rest_sec?: number
           target_reps?: number
+          target_reps_text?: string | null
           target_sets?: number
           user_id?: string
           workout_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "exercises_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_library"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "exercises_workout_id_fkey"
             columns: ["workout_id"]
@@ -1549,8 +1629,10 @@ export type Database = {
           created_at: string
           date: string
           duration_min: number | null
+          finished_at: string | null
           id: string
           note: string | null
+          started_at: string | null
           user_id: string
           workout_id: string | null
         }
@@ -1558,8 +1640,10 @@ export type Database = {
           created_at?: string
           date?: string
           duration_min?: number | null
+          finished_at?: string | null
           id?: string
           note?: string | null
+          started_at?: string | null
           user_id: string
           workout_id?: string | null
         }
@@ -1567,8 +1651,10 @@ export type Database = {
           created_at?: string
           date?: string
           duration_min?: number | null
+          finished_at?: string | null
           id?: string
           note?: string | null
+          started_at?: string | null
           user_id?: string
           workout_id?: string | null
         }
