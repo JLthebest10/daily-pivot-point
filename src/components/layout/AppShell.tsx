@@ -21,7 +21,14 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { applyPrimaryColor, cachePrimaryColor, cachedPrimaryColor } from "@/lib/theme-color";
+import {
+  applyBackgroundColor,
+  applyPrimaryColor,
+  cacheBackgroundColor,
+  cachePrimaryColor,
+  cachedBackgroundColor,
+  cachedPrimaryColor,
+} from "@/lib/theme-color";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
@@ -77,12 +84,18 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { data: profile } = useProfile();
   const { theme, setTheme } = useTheme();
   // Apply cached color instantly, then the saved profile color once loaded.
-  useEffect(() => applyPrimaryColor(cachedPrimaryColor()), []);
+  useEffect(() => {
+    applyPrimaryColor(cachedPrimaryColor());
+    applyBackgroundColor(cachedBackgroundColor());
+  }, []);
   useEffect(() => {
     if (profile === undefined) return;
     const c = profile?.primary_color ?? null;
     applyPrimaryColor(c);
     cachePrimaryColor(c);
+    const bg = profile?.background_color ?? null;
+    applyBackgroundColor(bg);
+    cacheBackgroundColor(bg);
   }, [profile]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);

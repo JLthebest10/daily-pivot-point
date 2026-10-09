@@ -185,3 +185,12 @@
 @utility animate-pop {
   animation: pop-check 260ms cubic-bezier(0.3, 1.4, 0.5, 1);
 }
+
+@layer base {
+  body,
+  aside,
+  header,
+  nav {
+    transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
+  }
+}
