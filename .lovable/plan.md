@@ -1,61 +1,95 @@
-# Alarme do iPhone: prompt para o ChatGPT + ajuda dentro do app
+# Integração Siri / Atalhos do iPhone → criar eventos no Life Hub
 
-## O que vai ser entregue
-1. Um prompt pronto (abaixo) para colar no ChatGPT. Ele explica o que o Life Hub envia e como o atalho tem que ficar, e faz o ChatGPT te guiar um passo de cada vez, esperando sua confirmação antes do próximo.
-2. Dentro do app, em Configurações, uma seção "Alarme do iPhone" com:
-   - um botão "Copiar prompt para o ChatGPT";
-   - um botão "Testar alarme", que manda um alarme de teste para daqui a 2 minutos com o nome "Teste Life Hub". Assim você confirma que funcionou sem precisar criar uma tarefa.
+## 1. O que existe hoje
 
-Nada muda nas tarefas, nos eventos nem no botão de relógio que já existe.
+**Como os eventos são cadastrados**
+- Pelo formulário da página Calendário. O app grava direto no banco usando a sessão de quem está logado.
+- Obrigatórios de fato: **título** e **data** (AAAA-MM-DD).
+- Os demais campos têm valor padrão ou são opcionais:
+  - horário (opcional);
+  - duração (60 min);
+  - categoria ("Geral");
+  - cor ("sage");
+  - repetição ("none");
+  - importância ("normal");
+  - lembrete (opcional);
+  - local e descrição (opcionais);
+  - "Adicionar alarme" (desligado).
 
-## O prompt para o ChatGPT
+**Banco e dono dos dados**
+- O banco é o Lovable Cloud, que funciona sobre PostgreSQL. Os eventos ficam numa tabela própria.
+- Cada evento guarda o identificador do usuário que o criou.
+- Uma regra de segurança do próprio banco permite ler, criar, editar e apagar só os eventos em que esse identificador é o de quem está logado. Ninguém vê nem mexe nos eventos de outra conta.
+
+**Existe alguma porta de entrada externa?**
+- **Não.** Hoje não há endereço público nem Edge Function que receba eventos de fora.
+- As funções que rodam no servidor (as do banco/Nubank) só funcionam com o usuário logado dentro do próprio app.
+- Um Atalho do iOS não tem essa sessão. Por isso ele precisa de uma credencial própria.
+
+## 2. Abordagem recomendada: "Chave pessoal do Atalho"
+
+A forma mais segura e simples é dar a cada usuário uma **chave pessoal** e criar um **endereço do Life Hub** que recebe eventos.
 
 ```text
-Preciso que você me guie, passo a passo, a criar um atalho no app Atalhos (Shortcuts) do iPhone, com o iOS mais recente em português do Brasil. Eu não sei nada de Atalhos, então siga estas regras:
-
-REGRAS DE COMO ME GUIAR
-- Me dê UM passo por mensagem e espere eu responder "feito" antes de mandar o próximo.
-- Em cada passo, diga exatamente onde tocar: o nome do botão, onde ele fica na tela (canto superior direito, barra de baixo etc.) e o que deve aparecer depois.
-- Se o nome de algum botão for diferente na minha tela, me pergunte o que estou vendo e adapte. Não invente.
-- Não pule etapas e não junte duas ações no mesmo passo.
-
-O QUE O ATALHO PRECISA FAZER
-Tenho um app web (Life Hub) que abre este link quando eu toco num botão de relógio:
-shortcuts://run-shortcut?name=Life%20Hub%20Alarme&input=text&text=14:30|Reunião
-
-Ou seja: ele roda um atalho chamado exatamente "Life Hub Alarme" e manda como entrada um TEXTO no formato HORA|NOME. Exemplo: "14:30|Reunião". A barra vertical "|" separa a hora do nome.
-
-O atalho tem que:
-1. Receber esse texto (Entrada do Atalho).
-2. Dividir o texto usando o separador personalizado "|".
-3. Pegar o PRIMEIRO item da lista (a hora, ex.: 14:30).
-4. Pegar o ÚLTIMO item da lista (o nome, ex.: Reunião).
-5. Criar um alarme no app Relógio com a hora do passo 3 e o nome (rótulo) do passo 4.
-
-O ATALHO FINAL DEVE TER EXATAMENTE ESTAS AÇÕES, NESTA ORDEM
-- (Bloco no topo, se aparecer) "Receber [Texto] entrada de [Nenhum lugar]" e, embaixo, "Se não houver entrada: Continuar". Pode ficar assim; não precisa ativar a Folha de Compartilhamento.
-- Ação "Dividir Texto": dividir [Entrada do Atalho] por [Personalizado], e no campo do separador digitar só o caractere |
-- Ação "Obter Item da Lista": obter [Primeiro Item] de [Texto Dividido]
-- Ação "Obter Item da Lista": obter [Último Item] de [Texto Dividido]
-- Ação "Criar Alarme" (do app Relógio): no campo de hora, usar a variável "Item da Lista" da PRIMEIRA ação Obter Item; tocar em "Mostrar Mais" e, no campo Rótulo/Nome, usar a variável "Item da Lista" da SEGUNDA ação Obter Item (ex.: "Item da Lista 2").
-- Nome do atalho: exatamente  Life Hub Alarme  (com L, H e A maiúsculos, um espaço entre as palavras, sem ponto no final).
-
-PONTOS ONDE EU COSTUMO ERRAR (me ajude a conferir)
-- Para escolher uma variável num campo: toque no campo azul e use a barra que aparece em cima do teclado, ou mantenha o dedo pressionado sobre o campo, toque em "Selecionar Variável" e depois toque no ícone da ação certa.
-- Na última ação, os dois "Item da Lista" são diferentes: o primeiro é a hora e o segundo é o nome. Confira comigo qual é qual.
-- O nome do atalho tem que ser idêntico, senão o link não acha o atalho.
-
-COMO TESTAR NO FINAL
-1. Me mande testar tocando no atalho dentro do app Atalhos. Na primeira vez ele pede permissão para acessar o Relógio: tocar em "Permitir". Sem entrada, pode dar erro, e isso é normal.
-2. Depois me mande abrir o Safari e colar na barra de endereço:
-   shortcuts://run-shortcut?name=Life%20Hub%20Alarme&input=text&text=23:59|Teste
-   Tocar em "Abrir" quando o iPhone perguntar e conferir no app Relógio, aba Alarmes, se apareceu um alarme às 23:59 chamado "Teste".
-3. Se o alarme for criado com a hora errada ou não for criado, me ajude a inserir, logo depois da primeira "Obter Item da Lista", a ação "Obter Datas da Entrada" e usar o resultado dela no campo de hora do "Criar Alarme".
-
-Comece agora pelo passo 1: abrir o app Atalhos.
+Siri ("Novo evento no Life Hub")
+   -> Atalho pergunta: título, data, hora
+   -> envia para https://lifehubb.lovable.app/api/public/siri/events
+      com a chave pessoal no cabeçalho
+   -> o servidor descobre de quem é a chave e cria o evento SÓ para essa conta
+   -> o Atalho responde "Evento criado: Dentista, 12/10 às 14:00"
 ```
 
+**Por que é seguro**
+- O banco guarda só uma versão embaralhada da chave, nunca a chave em si.
+- A chave aparece **uma única vez**, ao ser gerada. Depois ela não pode mais ser vista.
+- O dono do evento sai sempre da chave. O servidor ignora qualquer identificador de usuário enviado junto, então não dá para criar evento em outra conta.
+- A chave só serve para **criar eventos**. Ela não lê, não apaga e não acessa outros dados.
+- Você pode **revogar** a chave quando quiser, por exemplo se perder o celular, e gerar outra.
+- O servidor confere os dados recebidos: título até 200 caracteres, data e hora válidas, campos conhecidos. Também limita o tamanho do envio.
+- Chave errada ou ausente recebe uma recusa genérica, sem revelar se a chave existe.
+
+**Por que é simples**
+- No iPhone basta um Atalho com 4 ou 5 ações: Perguntar, Perguntar, Obter conteúdo da URL e Mostrar resultado.
+- Não precisa de login no Atalho nem de renovar a sessão.
+
+## 3. O que será construído (quando você aprovar)
+
+1. **Lugar para guardar as chaves:**
+   - Uma tabela nova de chaves, com dono, versão embaralhada da chave, nome do aparelho, data de criação, último uso e se foi revogada.
+   - Protegida pela mesma regra de cada usuário só ver as próprias chaves.
+2. **Configurações → "Siri e Atalhos":**
+   - Botão "Gerar chave", que mostra a chave uma vez com um botão "Copiar".
+   - Lista das chaves ativas, com o último uso e um botão "Revogar".
+   - Passo a passo para montar o Atalho no iPhone.
+3. **Endereço que recebe eventos:**
+   - Endereço: `/api/public/siri/events`.
+   - Recebe título, data e hora, além de duração, local e descrição opcionais.
+   - Cria o evento com os mesmos padrões do formulário.
+   - Responde uma frase curta para a Siri falar.
+4. **Datas faladas:** aceitar "hoje" e "amanhã" e o formato AAAA-MM-DD, que é o que o Atalho envia quando usa "Data formatada".
+5. **Testes automáticos:**
+   - Chave válida cria o evento na conta certa.
+   - Chave revogada ou inválida é recusada.
+   - Mandar o identificador de outra conta não muda o dono do evento.
+   - Data ou título inválidos são recusados.
+
+Fora deste primeiro passo: criar tarefas pela Siri e consultar a agenda pela Siri. Os dois podem vir depois, aproveitando a mesma chave.
+
 ## Detalhes técnicos
-- Novo bloco em `src/routes/_authenticated/configuracoes.tsx`: o texto do prompt fica guardado numa constante, e o botão de copiar usa `navigator.clipboard.writeText` e mostra um toast de confirmação.
-- O "Testar alarme" calcula a hora atual + 2 min (formato HH:MM) e reaproveita o mesmo link `shortcuts://` montado em `src/components/AlarmButton.tsx`. Para isso, extrair uma função `buildAlarmUrl(time, title)` desse arquivo.
-- Nada muda no banco de dados nem em outras telas.
+
+- A tabela nova `api_tokens` terá as colunas `id`, `user_id`, `name`, `token_hash` (SHA-256, único), `scopes` (padrão `{events:create}`), `last_used_at`, `revoked_at` e `created_at`.
+- Sobre o acesso a `api_tokens`:
+  - GRANT para `authenticated` e `service_role`.
+  - RLS com `auth.uid() = user_id`.
+  - O usuário logado só faz select, insert e update (para revogar) das próprias linhas.
+- A chave é gerada no servidor com `createServerFn` e `requireSupabaseAuth`: 32 bytes aleatórios com o prefixo `lh_`. Ela volta uma única vez e só o hash é gravado.
+- A rota será `src/routes/api/public/siri/events.ts` e só aceita POST. Ela:
+  - lê `Authorization: Bearer lh_...`;
+  - calcula o hash com `crypto.subtle`;
+  - procura a chave com o `supabaseAdmin`, carregado dentro do handler;
+  - confere que ela não foi revogada e que tem o escopo `events:create`;
+  - insere o evento com `user_id` vindo da chave;
+  - atualiza `last_used_at`;
+  - valida os dados com zod;
+  - responde com 401 genérico, 400 com mensagem curta ou 201 com `{ message }`.
+- No Atalho, a ação "Obter conteúdo da URL" envia método POST, cabeçalho `Authorization` e corpo JSON com `title`, `date` e `time`.
