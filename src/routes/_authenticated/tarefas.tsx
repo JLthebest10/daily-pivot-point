@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/select";
 import { EmptyState, ErrorNote, Field, FormModal, LoadingList, PageHeader } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
-import { AlarmButton } from "@/components/AlarmButton";
+import { AlarmButton, openReminder } from "@/components/AlarmButton";
+import { AlarmToggle } from "@/components/AlarmToggle";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/tarefas")({
   head: () => ({
@@ -58,6 +60,7 @@ function TasksPage() {
     priority: "media",
     category: "Geral",
     note: "",
+    add_alarm: false,
   });
 
   const pending = (all.data ?? []).filter((t) => !t.done);
@@ -65,16 +68,23 @@ function TasksPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (form.add_alarm && (!form.due_date || !form.due_time)) {
+      toast.error("Para adicionar alarme, preencha a data e o horário.");
+      return;
+    }
+    const title = form.title.trim();
     await save.mutateAsync({
-      title: form.title.trim(),
+      title,
+      add_alarm: form.add_alarm,
       due_date: form.due_date || null,
       due_time: form.due_time || null,
       priority: form.priority,
       category: form.category || "Geral",
       note: form.note || null,
     });
-    setForm({ ...form, title: "", note: "" });
+    setForm({ ...form, title: "", note: "", add_alarm: false });
     setOpen(false);
+    if (form.add_alarm) openReminder(form.due_date, form.due_time, title);
   }
 
   return (
@@ -171,6 +181,7 @@ function TasksPage() {
               />
             </Field>
           </div>
+          <AlarmToggle checked={form.add_alarm} onChange={(v) => setForm({ ...form, add_alarm: v })} />
           <Field label="Observação">
             <Textarea
               rows={2}

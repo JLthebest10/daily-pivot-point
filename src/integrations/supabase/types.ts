@@ -357,6 +357,7 @@ export type Database = {
       }
       events: {
         Row: {
+          add_alarm: boolean
           category: string
           color: string
           created_at: string
@@ -374,6 +375,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          add_alarm?: boolean
           category?: string
           color?: string
           created_at?: string
@@ -391,6 +393,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          add_alarm?: boolean
           category?: string
           color?: string
           created_at?: string
@@ -1265,6 +1268,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          add_alarm: boolean
           category: string
           created_at: string
           done: boolean
@@ -1278,6 +1282,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          add_alarm?: boolean
           category?: string
           created_at?: string
           done?: boolean
@@ -1291,6 +1296,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          add_alarm?: boolean
           category?: string
           created_at?: string
           done?: boolean

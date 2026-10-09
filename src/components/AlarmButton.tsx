@@ -37,3 +37,12 @@ export function AlarmButton({
     </Button>
   );
 }
+
+/** Opens the Shortcuts integration for an item. Returns false when date/time are missing or invalid. */
+export function openReminder(date: string | null, time: string | null, title: string): boolean {
+  if (!date || !time) return false;
+  const text = buildReminderText(date, time, title);
+  if (!text) return false;
+  window.location.href = buildReminderUrl(text);
+  return true;
+}
