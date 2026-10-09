@@ -201,8 +201,8 @@ export function GoalFormModal({
 
   function pick(f: File | undefined) {
     if (!f) return;
-    if (!f.type.startsWith("image/")) return toast.error("Escolha um arquivo de imagem.");
-    if (f.size > MAX_BYTES) return toast.error("A imagem precisa ter até 10 MB.");
+    if (!f.type.startsWith("image/")) { toast.error("Escolha um arquivo de imagem."); return; }
+    if (f.size > MAX_BYTES) { toast.error("A imagem precisa ter até 10 MB."); return; }
     setFile(f);
     setPreview(URL.createObjectURL(f));
   }
@@ -211,10 +211,10 @@ export function GoalFormModal({
     e.preventDefault();
     const t = parseMoney(target);
     const s = saved.trim() === "" ? 0 : parseMoney(saved);
-    if (!name.trim()) return toast.error("Informe o nome.");
-    if (t === null || t <= 0) return toast.error("Informe um valor de meta maior que zero.");
-    if (s === null || s < 0) return toast.error("O valor guardado não pode ser negativo.");
-    if (withDate && !date) return toast.error("Informe a data prevista.");
+    if (!name.trim()) { toast.error("Informe o nome."); return; }
+    if (t === null || t <= 0) { toast.error("Informe um valor de meta maior que zero."); return; }
+    if (s === null || s < 0) { toast.error("O valor guardado não pode ser negativo."); return; }
+    if (withDate && !date) { toast.error("Informe a data prevista."); return; }
     setBusy(true);
     try {
       let path = photo;
@@ -312,7 +312,7 @@ export function AddMoneyModal({
         onSubmit={async (e) => {
           e.preventDefault();
           const n = parseMoney(value);
-          if (n === null || n === 0) return toast.error("Informe um valor.");
+          if (n === null || n === 0) { toast.error("Informe um valor."); return; }
           const next = Math.max(0, Math.round(((item?.saved ?? 0) + n) * 100) / 100);
           await onSubmit(next);
           onOpenChange(false);
