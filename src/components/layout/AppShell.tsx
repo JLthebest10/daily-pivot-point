@@ -18,6 +18,7 @@ import {
   Store,
   ShoppingCart,
   Users,
+  Backpack,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -54,6 +55,7 @@ export const NAV = [
   { to: "/tarefas", label: "Tarefas", icon: ListTodo },
   { to: "/metas", label: "Metas", icon: Flag },
   { to: "/comprar", label: "Comprar", icon: ShoppingCart },
+  { to: "/bolsa", label: "Minha Bolsa", icon: Backpack },
   { to: "/cartao", label: "Cartão Cinza", icon: CreditCard },
   { to: "/alunos", label: "Alunos", icon: Users },
   { to: "/lojinha", label: "Lojinha", icon: Store },
