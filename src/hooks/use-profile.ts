@@ -13,6 +13,7 @@ export type Profile = {
   modules: string[];
   hidden_modules: string[];
   primary_color: string | null;
+  background_color: string | null;
   onboarded: boolean;
 };
 
