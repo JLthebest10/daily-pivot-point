@@ -1,0 +1,14 @@
+ALTER TABLE public.savings ADD COLUMN IF NOT EXISTS name text NOT NULL DEFAULT '';
+ALTER TABLE public.savings ADD COLUMN IF NOT EXISTS target numeric NOT NULL DEFAULT 0;
+ALTER TABLE public.savings ADD COLUMN IF NOT EXISTS current numeric NOT NULL DEFAULT 0;
+ALTER TABLE public.savings ADD COLUMN IF NOT EXISTS photo_path text;
+ALTER TABLE public.savings ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
+ALTER TABLE public.savings ALTER COLUMN amount SET DEFAULT 0;
+ALTER TABLE public.savings ALTER COLUMN date SET DEFAULT CURRENT_DATE;
+COMMENT ON COLUMN public.savings.amount IS 'DEPRECATED: replaced by current';
+COMMENT ON COLUMN public.savings.date IS 'DEPRECATED: not used by the app';
+DROP TRIGGER IF EXISTS t_savings_upd ON public.savings;
+CREATE TRIGGER t_savings_upd BEFORE UPDATE ON public.savings FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+ALTER TABLE public.future_expenses ADD COLUMN IF NOT EXISTS photo_path text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS primary_color text;
+COMMENT ON TABLE public.purchases IS 'DEPRECATED: planned purchases live in future_expenses';

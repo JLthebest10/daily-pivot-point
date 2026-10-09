@@ -521,6 +521,7 @@ export type Database = {
           id: string
           name: string
           note: string | null
+          photo_path: string | null
           saved: number
           target_date: string
           updated_at: string
@@ -533,6 +534,7 @@ export type Database = {
           id?: string
           name: string
           note?: string | null
+          photo_path?: string | null
           saved?: number
           target_date?: string
           updated_at?: string
@@ -545,6 +547,7 @@ export type Database = {
           id?: string
           name?: string
           note?: string | null
+          photo_path?: string | null
           saved?: number
           target_date?: string
           updated_at?: string
@@ -930,6 +933,7 @@ export type Database = {
           monthly_savings_goal: number
           name: string
           onboarded: boolean
+          primary_color: string | null
           theme: string
           updated_at: string
           weekly_workout_goal: number
@@ -943,6 +947,7 @@ export type Database = {
           monthly_savings_goal?: number
           name?: string
           onboarded?: boolean
+          primary_color?: string | null
           theme?: string
           updated_at?: string
           weekly_workout_goal?: number
@@ -956,6 +961,7 @@ export type Database = {
           monthly_savings_goal?: number
           name?: string
           onboarded?: boolean
+          primary_color?: string | null
           theme?: string
           updated_at?: string
           weekly_workout_goal?: number
@@ -1038,25 +1044,40 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          current: number
           date: string
           id: string
+          name: string
           note: string | null
+          photo_path: string | null
+          target: number
+          updated_at: string
           user_id: string
         }
         Insert: {
-          amount: number
+          amount?: number
           created_at?: string
+          current?: number
           date?: string
           id?: string
+          name?: string
           note?: string | null
+          photo_path?: string | null
+          target?: number
+          updated_at?: string
           user_id: string
         }
         Update: {
           amount?: number
           created_at?: string
+          current?: number
           date?: string
           id?: string
+          name?: string
           note?: string | null
+          photo_path?: string | null
+          target?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
