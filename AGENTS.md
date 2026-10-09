@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Training: exercises in `exercise_library` are shared across workouts; `exercises` rows hold per-workout prescription and are archived (never deleted) so set history survives. History is keyed by `library_id` and only counts `done` sets of sessions with `finished_at` — keeps one exercise's history across workouts and ignores in-progress sessions.
