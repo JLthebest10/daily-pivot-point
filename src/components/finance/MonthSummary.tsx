@@ -67,7 +67,7 @@ export function MonthSummary({ rows }: { rows: SummaryTx[] }) {
           <ChevronLeft className="size-4" />
         </Button>
         <label className="relative flex flex-1 cursor-pointer flex-col items-center">
-          <span className="text-sm font-semibold capitalize">{MONTHS[ym.m]} de {ym.y}</span>
+          <span className="text-sm font-semibold">{MONTHS[ym.m]} de {ym.y}</span>
           <span className="text-[11px] text-muted-foreground">{isCurrent ? "Mês atual" : "Toque para escolher"}</span>
           <input
             type="month"
@@ -88,10 +88,10 @@ export function MonthSummary({ rows }: { rows: SummaryTx[] }) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <StatCard label="Receitas" value={money(income)} tone="positive" />
         <StatCard label="Despesas" value={money(expense)} tone="negative" />
-        <StatCard label="Saldo do mês" value={money(balance)} tone={balance >= 0 ? "positive" : "negative"} />
+        <StatCard className="col-span-2" label="Saldo do mês" value={money(balance)} tone={balance >= 0 ? "positive" : "negative"} />
       </div>
 
       <div className="surface p-4">
