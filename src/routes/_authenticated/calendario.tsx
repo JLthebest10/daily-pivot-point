@@ -27,7 +27,9 @@ import { EmptyState, Field, FormModal, LoadingList, PageHeader } from "@/compone
 import { cn } from "@/lib/utils";
 import { IMPORTANCE, importanceOf } from "@/lib/importance";
 import { holidaysOn } from "@/lib/holidays";
-import { AlarmButton } from "@/components/AlarmButton";
+import { AlarmButton, openReminder } from "@/components/AlarmButton";
+import { AlarmToggle } from "@/components/AlarmToggle";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/calendario")({
   validateSearch: z.object({
@@ -115,6 +117,7 @@ function CalendarPage() {
     repeat: "none",
     reminder_min: "15",
     importance: "normal",
+    add_alarm: false,
   });
 
   const byDate = (iso: string) =>
@@ -157,8 +160,14 @@ function CalendarPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (form.add_alarm && (!form.date || !form.start_time)) {
+      toast.error("Para adicionar alarme, preencha a data e a hora.");
+      return;
+    }
+    const title = form.title.trim();
     await save.mutateAsync({
-      title: form.title.trim(),
+      title,
+      add_alarm: form.add_alarm,
       date: form.date,
       start_time: form.start_time || null,
       duration_min: Number(form.duration_min) || 60,
@@ -170,8 +179,9 @@ function CalendarPage() {
       importance: form.importance,
       reminder_min: form.reminder_min === "" ? null : Number(form.reminder_min),
     });
-    setForm({ ...form, title: "", location: "", description: "" });
+    setForm({ ...form, title: "", location: "", description: "", add_alarm: false });
     setOpen(false);
+    if (form.add_alarm) openReminder(form.date, form.start_time, title);
   }
 
   return (
@@ -442,6 +452,7 @@ function CalendarPage() {
               </SelectContent>
             </Select>
           </Field>
+          <AlarmToggle checked={form.add_alarm} onChange={(v) => setForm({ ...form, add_alarm: v })} />
           <Field label="Descrição">
             <Textarea
               rows={2}
