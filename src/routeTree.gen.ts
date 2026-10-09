@@ -27,6 +27,8 @@ import { Route as AuthenticatedRetroativoRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedAlunosIndexRouteImport } from './routes/_authenticated/alunos.index'
 import { Route as AuthenticatedAlunosIdRouteImport } from './routes/_authenticated/alunos.$id'
+import { Route as AuthenticatedBolsaIndexRouteImport } from './routes/_authenticated/bolsa.index'
+import { Route as AuthenticatedBolsaIdRouteImport } from './routes/_authenticated/bolsa.$id'
 import { Route as AuthenticatedDietaIndexRouteImport } from './routes/_authenticated/dieta.index'
 import { Route as AuthenticatedDietaCaloriasRouteImport } from './routes/_authenticated/dieta.calorias'
 import { Route as AuthenticatedDietaConsistenciaRouteImport } from './routes/_authenticated/dieta.consistencia'
@@ -128,6 +130,16 @@ const AuthenticatedAlunosIdRoute = AuthenticatedAlunosIdRouteImport.update({
   path: '/alunos/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBolsaIndexRoute = AuthenticatedBolsaIndexRouteImport.update({
+  id: '/bolsa/',
+  path: '/bolsa/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBolsaIdRoute = AuthenticatedBolsaIdRouteImport.update({
+  id: '/bolsa/$id',
+  path: '/bolsa/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDietaIndexRoute = AuthenticatedDietaIndexRouteImport.update({
   id: '/dieta/',
   path: '/dieta/',
@@ -191,12 +203,14 @@ export interface FileRoutesByFullPath {
   '/retroativo': typeof AuthenticatedRetroativoRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/alunos/$id': typeof AuthenticatedAlunosIdRoute
+  '/bolsa/$id': typeof AuthenticatedBolsaIdRoute
   '/dieta/calorias': typeof AuthenticatedDietaCaloriasRoute
   '/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/alunos/': typeof AuthenticatedAlunosIndexRoute
+  '/bolsa/': typeof AuthenticatedBolsaIndexRoute
   '/dieta/': typeof AuthenticatedDietaIndexRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/treino/': typeof AuthenticatedTreinoIndexRoute
@@ -218,12 +232,14 @@ export interface FileRoutesByTo {
   '/retroativo': typeof AuthenticatedRetroativoRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/alunos/$id': typeof AuthenticatedAlunosIdRoute
+  '/bolsa/$id': typeof AuthenticatedBolsaIdRoute
   '/dieta/calorias': typeof AuthenticatedDietaCaloriasRoute
   '/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/alunos': typeof AuthenticatedAlunosIndexRoute
+  '/bolsa': typeof AuthenticatedBolsaIndexRoute
   '/dieta': typeof AuthenticatedDietaIndexRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
   '/treino': typeof AuthenticatedTreinoIndexRoute
@@ -247,12 +263,14 @@ export interface FileRoutesById {
   '/_authenticated/retroativo': typeof AuthenticatedRetroativoRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/_authenticated/alunos/$id': typeof AuthenticatedAlunosIdRoute
+  '/_authenticated/bolsa/$id': typeof AuthenticatedBolsaIdRoute
   '/_authenticated/dieta/calorias': typeof AuthenticatedDietaCaloriasRoute
   '/_authenticated/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/_authenticated/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
   '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/_authenticated/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/_authenticated/alunos/': typeof AuthenticatedAlunosIndexRoute
+  '/_authenticated/bolsa/': typeof AuthenticatedBolsaIndexRoute
   '/_authenticated/dieta/': typeof AuthenticatedDietaIndexRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/_authenticated/treino/': typeof AuthenticatedTreinoIndexRoute
@@ -276,12 +294,14 @@ export interface FileRouteTypes {
     | '/retroativo'
     | '/tarefas'
     | '/alunos/$id'
+    | '/bolsa/$id'
     | '/dieta/calorias'
     | '/dieta/consistencia'
     | '/dieta/evolucao'
     | '/habitos/$id'
     | '/treino/$id'
     | '/alunos/'
+    | '/bolsa/'
     | '/dieta/'
     | '/habitos/'
     | '/treino/'
@@ -303,12 +323,14 @@ export interface FileRouteTypes {
     | '/retroativo'
     | '/tarefas'
     | '/alunos/$id'
+    | '/bolsa/$id'
     | '/dieta/calorias'
     | '/dieta/consistencia'
     | '/dieta/evolucao'
     | '/habitos/$id'
     | '/treino/$id'
     | '/alunos'
+    | '/bolsa'
     | '/dieta'
     | '/habitos'
     | '/treino'
@@ -331,12 +353,14 @@ export interface FileRouteTypes {
     | '/_authenticated/retroativo'
     | '/_authenticated/tarefas'
     | '/_authenticated/alunos/$id'
+    | '/_authenticated/bolsa/$id'
     | '/_authenticated/dieta/calorias'
     | '/_authenticated/dieta/consistencia'
     | '/_authenticated/dieta/evolucao'
     | '/_authenticated/habitos/$id'
     | '/_authenticated/treino/$id'
     | '/_authenticated/alunos/'
+    | '/_authenticated/bolsa/'
     | '/_authenticated/dieta/'
     | '/_authenticated/habitos/'
     | '/_authenticated/treino/'
@@ -477,6 +501,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlunosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/bolsa/': {
+      id: '/_authenticated/bolsa/'
+      path: '/bolsa'
+      fullPath: '/bolsa/'
+      preLoaderRoute: typeof AuthenticatedBolsaIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/bolsa/$id': {
+      id: '/_authenticated/bolsa/$id'
+      path: '/bolsa/$id'
+      fullPath: '/bolsa/$id'
+      preLoaderRoute: typeof AuthenticatedBolsaIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dieta/': {
       id: '/_authenticated/dieta/'
       path: '/dieta'
@@ -550,12 +588,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRetroativoRoute: typeof AuthenticatedRetroativoRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedAlunosIdRoute: typeof AuthenticatedAlunosIdRoute
+  AuthenticatedBolsaIdRoute: typeof AuthenticatedBolsaIdRoute
   AuthenticatedDietaCaloriasRoute: typeof AuthenticatedDietaCaloriasRoute
   AuthenticatedDietaConsistenciaRoute: typeof AuthenticatedDietaConsistenciaRoute
   AuthenticatedDietaEvolucaoRoute: typeof AuthenticatedDietaEvolucaoRoute
   AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
   AuthenticatedTreinoIdRoute: typeof AuthenticatedTreinoIdRoute
   AuthenticatedAlunosIndexRoute: typeof AuthenticatedAlunosIndexRoute
+  AuthenticatedBolsaIndexRoute: typeof AuthenticatedBolsaIndexRoute
   AuthenticatedDietaIndexRoute: typeof AuthenticatedDietaIndexRoute
   AuthenticatedHabitosIndexRoute: typeof AuthenticatedHabitosIndexRoute
   AuthenticatedTreinoIndexRoute: typeof AuthenticatedTreinoIndexRoute
@@ -575,12 +615,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRetroativoRoute: AuthenticatedRetroativoRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedAlunosIdRoute: AuthenticatedAlunosIdRoute,
+  AuthenticatedBolsaIdRoute: AuthenticatedBolsaIdRoute,
   AuthenticatedDietaCaloriasRoute: AuthenticatedDietaCaloriasRoute,
   AuthenticatedDietaConsistenciaRoute: AuthenticatedDietaConsistenciaRoute,
   AuthenticatedDietaEvolucaoRoute: AuthenticatedDietaEvolucaoRoute,
   AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
   AuthenticatedTreinoIdRoute: AuthenticatedTreinoIdRoute,
   AuthenticatedAlunosIndexRoute: AuthenticatedAlunosIndexRoute,
+  AuthenticatedBolsaIndexRoute: AuthenticatedBolsaIndexRoute,
   AuthenticatedDietaIndexRoute: AuthenticatedDietaIndexRoute,
   AuthenticatedHabitosIndexRoute: AuthenticatedHabitosIndexRoute,
   AuthenticatedTreinoIndexRoute: AuthenticatedTreinoIndexRoute,
