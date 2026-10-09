@@ -572,38 +572,45 @@ function WorkoutDetail() {
               <li
                 key={ex.id}
                 className={cn(
-                  "surface px-4 py-4 transition-shadow",
+                  "surface overflow-hidden p-3 transition-shadow sm:p-4",
                   isCurrent && "ring-2 ring-primary/60",
                   allDone && "opacity-80",
                 )}
               >
-                <div className="flex gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="flex items-center gap-1.5 text-[15px] font-semibold leading-snug">
-                      {allDone && <Check className="size-4 shrink-0 text-primary" />}
+                <div className="flex items-stretch gap-3">
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <p className="flex items-start gap-1.5 text-base font-semibold leading-snug">
+                      {allDone && <Check className="mt-0.5 size-4 shrink-0 text-primary" />}
                       <span className="break-words">{ex.name}</span>
                     </p>
-                    <p className="num mt-1 text-xs text-muted-foreground">
-                      {ex.target_sets} séries · {repsLabel(ex)} reps · {ex.rest_sec}s descanso
-                    </p>
                     {(lib?.muscle_group || lib?.equipment) && (
-                      <p className="mt-0.5 text-xs text-muted-foreground">
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
                         {[lib.muscle_group, lib.equipment].filter(Boolean).join(" · ")}
                       </p>
                     )}
-                    {ex.note && <p className="mt-1 text-xs italic text-muted-foreground">{ex.note}</p>}
-                    {prev && (
-                      <p className="num mt-1.5 text-xs">
-                        <span className="text-muted-foreground">Última ({shortDate(prev.date)}): </span>
-                        {prev.sets.map((s) => `${formatDecimal(s.weight)}×${s.reps}`).join(" · ")}
-                      </p>
-                    )}
+                    <div className="num mt-2 flex flex-wrap gap-1.5 text-[11px] font-medium">
+                      <span className="rounded-md bg-muted px-2 py-0.5">{ex.target_sets} séries</span>
+                      <span className="rounded-md bg-muted px-2 py-0.5">{repsLabel(ex)} reps</span>
+                      <span className="rounded-md bg-muted px-2 py-0.5">{ex.rest_sec}s</span>
+                    </div>
+                    {ex.note && <p className="mt-1.5 text-xs italic text-muted-foreground">{ex.note}</p>}
                   </div>
-                  <ExerciseThumb path={lib?.media_path} type={lib?.media_type} name={ex.name} />
+                  <ExerciseThumb
+                    path={lib?.media_path}
+                    type={lib?.media_type}
+                    name={ex.name}
+                    className="size-28 sm:size-32"
+                  />
                 </div>
+                {prev && (
+                  <p className="num mt-2 truncate text-xs" title={shortDate(prev.date)}>
+                    <span className="text-muted-foreground">Última vez: </span>
+                    {prev.sets.map((s) => `${formatDecimal(s.weight)} kg × ${s.reps}`).join(" · ")}
+                  </p>
+                )}
 
                 {active && rows.length > 0 && (
-                  <div className="mt-3">
+                  <div className="mt-2">
                     <div className="grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_2.5rem] items-center gap-2 px-1 pb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                       <span>Série</span>
                       <span>Anterior</span>
@@ -618,7 +625,7 @@ function WorkoutDetail() {
                           <li
                             key={idx}
                             className={cn(
-                              "grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_2.5rem] items-center gap-2 rounded-lg px-1 py-1 transition-colors",
+                              "grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_2.5rem] items-center gap-2 rounded-lg px-1 py-0.5 transition-colors",
                               r.done && "bg-primary/10",
                             )}
                           >
@@ -635,7 +642,7 @@ function WorkoutDetail() {
                               onChange={(e) =>
                                 updateRow(ex, idx, { weight: sanitizeDecimalInput(e.target.value) })
                               }
-                              className="num h-10 px-2 text-center"
+                              className="num h-9 px-2 text-center"
                             />
                             <Input
                               inputMode="numeric"
@@ -646,7 +653,7 @@ function WorkoutDetail() {
                               onChange={(e) =>
                                 updateRow(ex, idx, { reps: e.target.value.replace(/\D/g, "").slice(0, 3) })
                               }
-                              className="num h-10 px-2 text-center"
+                              className="num h-9 px-2 text-center"
                             />
                             <button
                               type="button"
@@ -666,7 +673,7 @@ function WorkoutDetail() {
                         );
                       })}
                     </ul>
-                    <div className="mt-2 flex items-center gap-2">
+                    <div className="mt-1 flex items-center gap-1">
                       <Button size="sm" variant="ghost" onClick={() => addRow(ex)}>
                         <Plus className="size-4" /> Série
                       </Button>
@@ -685,7 +692,7 @@ function WorkoutDetail() {
                   </div>
                 )}
 
-                <div className="mt-3 flex items-center gap-1 border-t border-border/60 pt-2">
+                <div className="mt-2 flex items-center gap-1 border-t border-border/60 pt-1">
                   <Button
                     size="sm"
                     variant="ghost"

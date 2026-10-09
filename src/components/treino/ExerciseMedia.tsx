@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Dumbbell, Play } from "lucide-react";
+import { Dumbbell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { currentUserId } from "@/lib/db";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -12,7 +12,7 @@ export async function uploadExerciseMedia(file: File, kind: "image" | "video") {
   const path = `${uid}/exercises/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage
     .from("media")
-    .upload(path, file, file.type ? { contentType: file.type } : {});
+    .upload(path, file, { cacheControl: "31536000", upsert: false, ...(file.type ? { contentType: file.type } : {}) });
   if (error) throw error;
   return path;
 }
@@ -60,11 +60,10 @@ export function ExerciseThumb({
       return (
         <div className={box} aria-hidden>
           {type === "video" ? (
-            <video src={`${url.data}#t=0.1`} preload="metadata" muted playsInline className="size-full object-cover" />
+            <video src={`${url.data}#t=0.1`} preload="metadata" muted playsInline className="size-full object-contain" />
           ) : (
-            <img src={url.data} alt="" loading="lazy" className="size-full object-cover" />
+            <img src={url.data} alt="" loading="lazy" className="size-full object-contain" />
           )}
-          {type === "video" && <Play className="absolute size-4 fill-background text-background" />}
         </div>
       );
     return (
@@ -78,7 +77,7 @@ export function ExerciseThumb({
     <>
       <button
         type="button"
-        className={cn(box, "transition-transform active:scale-95")}
+        className={cn(box, "cursor-pointer ring-offset-2 transition-transform hover:ring-2 hover:ring-primary/40 active:scale-95")}
         onClick={() => setOpen(true)}
         aria-label={type === "video" ? `Ver vídeo de ${name}` : `Ampliar imagem de ${name}`}
       >
@@ -89,18 +88,11 @@ export function ExerciseThumb({
               preload="metadata"
               muted
               playsInline
-              className="size-full object-cover"
+              className="size-full object-contain"
             />
           ) : (
-            <img src={url.data} alt={name} loading="lazy" className="size-full object-cover" />
+            <img src={url.data} alt={name} loading="lazy" className="size-full object-contain" />
           ))}
-        {type === "video" && (
-          <span className="absolute inset-0 flex items-center justify-center bg-foreground/20">
-            <span className="flex size-8 items-center justify-center rounded-full bg-background/90">
-              <Play className="size-4 fill-foreground text-foreground" />
-            </span>
-          </span>
-        )}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg p-3">
