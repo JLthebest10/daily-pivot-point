@@ -38,6 +38,7 @@ import { Route as AuthenticatedHabitosIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedTreinoIndexRouteImport } from './routes/_authenticated/treino.index'
 import { Route as AuthenticatedTreinoIdRouteImport } from './routes/_authenticated/treino.$id'
 import { Route as AuthenticatedTreinoExerciciosRouteImport } from './routes/_authenticated/treino.exercicios'
+import { Route as ApiPublicSiriEventsRouteImport } from './routes/api/public/siri/events'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -192,6 +193,11 @@ const AuthenticatedTreinoExerciciosRoute =
     path: '/treino/exercicios',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicSiriEventsRoute = ApiPublicSiriEventsRouteImport.update({
+  id: '/api/public/siri/events',
+  path: '/api/public/siri/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -222,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/dieta/': typeof AuthenticatedDietaIndexRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/treino/': typeof AuthenticatedTreinoIndexRoute
+  '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByTo {
   '/dieta': typeof AuthenticatedDietaIndexRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
   '/treino': typeof AuthenticatedTreinoIndexRoute
+  '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/_authenticated/dieta/': typeof AuthenticatedDietaIndexRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/_authenticated/treino/': typeof AuthenticatedTreinoIndexRoute
+  '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
     | '/dieta/'
     | '/habitos/'
     | '/treino/'
+    | '/api/public/siri/events'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -346,6 +356,7 @@ export interface FileRouteTypes {
     | '/dieta'
     | '/habitos'
     | '/treino'
+    | '/api/public/siri/events'
   id:
     | '__root__'
     | '/'
@@ -377,6 +388,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dieta/'
     | '/_authenticated/habitos/'
     | '/_authenticated/treino/'
+    | '/api/public/siri/events'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -384,6 +396,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
+  ApiPublicSiriEventsRoute: typeof ApiPublicSiriEventsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -591,6 +604,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTreinoExerciciosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/siri/events': {
+      id: '/api/public/siri/events'
+      path: '/api/public/siri/events'
+      fullPath: '/api/public/siri/events'
+      preLoaderRoute: typeof ApiPublicSiriEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -658,6 +678,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
+  ApiPublicSiriEventsRoute: ApiPublicSiriEventsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -12,6 +12,7 @@ import { Field, PageHeader, SectionTitle } from "@/components/ui-kit";
 import { NAV, DEFAULT_TABS, LOCKED_MODULES, resolveTabs, visibleNav } from "@/components/layout/AppShell";
 import { cn } from "@/lib/utils";
 import { ThemeColorPicker } from "@/components/ThemeColorPicker";
+import { SiriSettings } from "@/components/SiriSettings";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
@@ -223,6 +224,8 @@ function SettingsPage() {
           <ThemeColorPicker />
         </div>
       </section>
+
+      <SiriSettings />
 
       <section className="mt-8">
         <SectionTitle>Conta</SectionTitle>
