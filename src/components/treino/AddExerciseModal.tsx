@@ -181,8 +181,9 @@ export function AddExerciseModal({
                         onClick={() => choose(l)}
                         className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-muted"
                       >
-                        <span className="pointer-events-none">
+                        <span>
                           <ExerciseThumb
+                            interactive={false}
                             path={l.media_path}
                             type={l.media_type}
                             name={l.name}

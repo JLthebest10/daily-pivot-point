@@ -40,11 +40,13 @@ export function ExerciseThumb({
   type,
   name,
   className,
+  interactive = true,
 }: {
   path: string | null | undefined;
   type: "image" | "video" | null | undefined;
   name: string;
   className?: string;
+  interactive?: boolean;
 }) {
   const url = useMediaUrl(path);
   const [open, setOpen] = useState(false);
@@ -53,7 +55,18 @@ export function ExerciseThumb({
     className,
   );
 
-  if (!path || !type) {
+  if (!path || !type || !interactive) {
+    if (path && type && url.data)
+      return (
+        <div className={box} aria-hidden>
+          {type === "video" ? (
+            <video src={`${url.data}#t=0.1`} preload="metadata" muted playsInline className="size-full object-cover" />
+          ) : (
+            <img src={url.data} alt="" loading="lazy" className="size-full object-cover" />
+          )}
+          {type === "video" && <Play className="absolute size-4 fill-background text-background" />}
+        </div>
+      );
     return (
       <div className={box} aria-hidden>
         <Dumbbell className="size-6 text-muted-foreground" />
