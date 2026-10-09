@@ -3,12 +3,28 @@ import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSave } from "@/lib/db";
 import { money, toISODate } from "@/lib/format";
+
+const CATEGORIES = [
+  "Alimentação",
+  "Compras",
+  "Educação",
+  "Freelance",
+  "Investimentos",
+  "Lazer",
+  "Moradia",
+  "Salário",
+  "Saúde",
+  "Transporte",
+  "Outros",
+];
 
 export function QuickMoney({ balance }: { balance: number }) {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("Outros");
   const save = useSave("transactions", "Lançamento salvo");
 
   const submit = async (type: "income" | "expense") => {
@@ -18,7 +34,7 @@ export function QuickMoney({ balance }: { balance: number }) {
       type,
       amount: value,
       date: toISODate(),
-      category: type === "income" ? "Outros" : "Compras",
+      category,
       description: description.trim() || (type === "income" ? "Entrada rápida" : "Saída rápida"),
     });
     setAmount("");
@@ -41,6 +57,18 @@ export function QuickMoney({ balance }: { balance: number }) {
           onChange={(e) => setDescription(e.target.value)}
         />
       </div>
+      <Select value={category} onValueChange={setCategory}>
+        <SelectTrigger aria-label="Categoria do lançamento" className="w-full">
+          <SelectValue placeholder="Escolha a categoria" />
+        </SelectTrigger>
+        <SelectContent>
+          {CATEGORIES.map((item) => (
+            <SelectItem key={item} value={item}>
+              {item}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <div className="grid grid-cols-2 gap-2">
         <Button
           type="button"
