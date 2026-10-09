@@ -69,7 +69,10 @@ function LibraryPage() {
 
   async function remove(l: LibraryExercise) {
     const { error } = await db.from("exercise_library").delete().eq("id", l.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await deleteExerciseMedia(l.media_path);
     await qc.invalidateQueries({ queryKey: ["exercise_library"] });
     toast.success("Exercício excluído da biblioteca");
