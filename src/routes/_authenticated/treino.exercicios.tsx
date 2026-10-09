@@ -138,7 +138,7 @@ function LibraryPage() {
                       {used ? `Em ${used} treino${used > 1 ? "s" : ""}` : "Não usado em treinos"}
                     </p>
                   </div>
-                  <ExerciseThumb path={l.media_path} type={l.media_type} name={l.name} className="size-16" />
+                  <ExerciseThumb path={l.media_path} type={l.media_type} name={l.name} className="size-20" />
                 </div>
                 <div className="mt-2 flex items-center border-t border-border/60 pt-1">
                   <Button
