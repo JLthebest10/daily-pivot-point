@@ -14,6 +14,129 @@ export type Database = {
   }
   public: {
     Tables: {
+      bag_items: {
+        Row: {
+          active: boolean
+          category: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          is_fixed: boolean
+          name: string
+          order_index: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_fixed?: boolean
+          name: string
+          order_index?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_fixed?: boolean
+          name?: string
+          order_index?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bag_list_items: {
+        Row: {
+          category: string | null
+          checked: boolean
+          created_at: string
+          icon: string | null
+          id: string
+          list_id: string
+          name: string
+          order_index: number
+          source_item_id: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          checked?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          list_id: string
+          name: string
+          order_index?: number
+          source_item_id?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          checked?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          list_id?: string
+          name?: string
+          order_index?: number
+          source_item_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bag_list_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "bag_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bag_list_items_source_item_id_fkey"
+            columns: ["source_item_id"]
+            isOneToOne: false
+            referencedRelation: "bag_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bag_lists: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          note: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          note?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bank_accounts: {
         Row: {
           account_id: string
