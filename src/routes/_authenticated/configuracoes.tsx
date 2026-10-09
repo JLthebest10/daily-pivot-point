@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Field, PageHeader, SectionTitle } from "@/components/ui-kit";
 import { NAV, DEFAULT_TABS, LOCKED_MODULES, resolveTabs, visibleNav } from "@/components/layout/AppShell";
 import { cn } from "@/lib/utils";
+import { ThemeColorPicker } from "@/components/ThemeColorPicker";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
@@ -217,6 +218,9 @@ function SettingsPage() {
               {t.label}
             </button>
           ))}
+        </div>
+        <div className="mt-3">
+          <ThemeColorPicker />
         </div>
       </section>
 

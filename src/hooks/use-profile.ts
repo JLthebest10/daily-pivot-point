@@ -12,6 +12,7 @@ export type Profile = {
   monthly_savings_goal: number;
   modules: string[];
   hidden_modules: string[];
+  primary_color: string | null;
   onboarded: boolean;
 };
 
