@@ -1,57 +1,47 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import {
-  Cell,
-  Legend,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { toast } from "sonner";
 import { useList, useRemove, useSave } from "@/lib/db";
-import { MONTHS, money, toISODate } from "@/lib/format";
+import { money, toISODate } from "@/lib/format";
+import { parseMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Bar,
-  EmptyState,
-  ErrorNote,
-  Field,
-  FormModal,
-  LoadingList,
-  PageHeader,
-  SectionTitle,
-  StatCard,
-} from "@/components/ui-kit";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { EmptyState, ErrorNote, Field, FormModal, LoadingList, PageHeader, SectionTitle, StatCard } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
 import { BankConnections } from "@/components/finance/BankConnections";
 import { StatementImport } from "@/components/finance/StatementImport";
+import { MoneyInput } from "@/components/finance/MoneyInput";
+import { MonthSummary } from "@/components/finance/MonthSummary";
+import {
+  AddMoneyModal,
+  GoalCard,
+  GoalFormModal,
+  removeFinancePhoto,
+  type GoalFormValues,
+  type GoalItem,
+} from "@/components/finance/Goals";
 
 export const Route = createFileRoute("/_authenticated/financas")({
   head: () => ({
     meta: [
       { title: "Finanças — Life Hub" },
-      {
-        name: "description",
-        content: "Receitas, despesas, compras planejadas e reserva de emergência.",
-      },
+      { name: "description", content: "Resumo mensal, lançamentos, compras planejadas e reservas." },
       { property: "og:title", content: "Finanças — Life Hub" },
-      {
-        property: "og:description",
-        content: "Receitas, despesas, compras planejadas e reserva de emergência.",
-      },
+      { property: "og:description", content: "Resumo mensal, lançamentos, compras planejadas e reservas." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: FinancePage,
@@ -67,15 +57,7 @@ export type Transaction = {
   source?: string | null;
   payment_method?: string | null;
 };
-export type Purchase = {
-  id: string;
-  name: string;
-  price: number;
-  priority: string;
-  saved: number;
-  bought: boolean;
-};
-export type Saving = { id: string; name: string; target: number; current: number };
+export type Saving = { id: string; name: string; target: number; current: number; photo_path: string | null };
 export type FutureExpense = {
   id: string;
   name: string;
@@ -84,97 +66,85 @@ export type FutureExpense = {
   target_date: string;
   note: string | null;
   done: boolean;
+  photo_path: string | null;
 };
 
 const EXPENSE_CATS = ["Moradia", "Alimentação", "Transporte", "Saúde", "Lazer", "Educação", "Outros"];
 const INCOME_CATS = ["Salário", "Freelance", "Investimentos", "Outros"];
-const PIE = [
-  "var(--color-chart-1)",
-  "var(--color-chart-2)",
-  "var(--color-chart-3)",
-  "var(--color-chart-4)",
-  "var(--color-chart-5)",
-];
 
-type Tab = "resumo" | "lancamentos" | "contas" | "compras" | "futuros" | "reserva";
+type Tab = "resumo" | "lancamentos" | "contas" | "compras" | "reserva";
+
+const savingToGoal = (s: Saving): GoalItem => ({
+  id: s.id,
+  name: s.name,
+  target: Number(s.target),
+  saved: Number(s.current),
+  photo_path: s.photo_path,
+});
+const futureToGoal = (f: FutureExpense): GoalItem => ({
+  id: f.id,
+  name: f.name,
+  target: Number(f.amount),
+  saved: Number(f.saved),
+  photo_path: f.photo_path,
+  date: f.target_date,
+  note: f.note,
+  done: f.done,
+});
 
 function FinancePage() {
   const [tab, setTab] = useState<Tab>("resumo");
   const tx = useList<Transaction>("transactions", { order: { column: "date", ascending: false } });
-  const purchases = useList<Purchase>("purchases", { order: { column: "created_at" } });
   const savings = useList<Saving>("savings", { order: { column: "created_at" } });
   const futures = useList<FutureExpense>("future_expenses", { order: { column: "target_date" } });
 
   const saveTx = useSave("transactions", "Lançamento salvo");
   const removeTx = useRemove("transactions", "Lançamento excluído");
-  const savePurchase = useSave("purchases", "Compra salva");
-  const removePurchase = useRemove("purchases", "Compra excluída");
   const saveSaving = useSave("savings", "Reserva salva");
   const removeSaving = useRemove("savings", "Reserva excluída");
-  const saveFuture = useSave("future_expenses", "Item salvo");
-  const removeFuture = useRemove("future_expenses", "Item excluído");
+  const saveFuture = useSave("future_expenses", "Compra salva");
+  const removeFuture = useRemove("future_expenses", "Compra excluída");
 
   const [openTx, setOpenTx] = useState(false);
-  const [openPurchase, setOpenPurchase] = useState(false);
-  const [openSaving, setOpenSaving] = useState(false);
-  const [openFuture, setOpenFuture] = useState(false);
-  const [fForm, setFForm] = useState({
-    name: "",
-    amount: 0,
-    saved: 0,
-    target_date: toISODate(),
-    note: "",
-  });
+  const [txForm, setTxForm] = useState({ type: "expense", description: "", amount: "", category: "Alimentação", date: toISODate() });
 
-  const [txForm, setTxForm] = useState({
-    type: "expense",
-    description: "",
-    amount: 0,
-    category: "Alimentação",
-    date: toISODate(),
-  });
-  const [pForm, setPForm] = useState({ name: "", price: 0, priority: "media", saved: 0 });
-  const [sForm, setSForm] = useState({ name: "", target: 0, current: 0 });
+  // goal modals (shared by Reserva and Compras)
+  const [goalForm, setGoalForm] = useState<{ kind: "saving" | "future"; item: GoalItem | null } | null>(null);
+  const [addMoney, setAddMoney] = useState<{ kind: "saving" | "future"; item: GoalItem } | null>(null);
+  const [confirmDel, setConfirmDel] = useState<{ kind: "saving" | "future"; item: GoalItem } | null>(null);
 
   const rows = tx.data ?? [];
-  const now = new Date();
-  const monthRows = rows.filter((r) => {
-    const d = new Date(r.date);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  });
-  const income = monthRows.filter((r) => r.type === "income").reduce((a, r) => a + Number(r.amount), 0);
-  const expense = monthRows
-    .filter((r) => r.type === "expense")
-    .reduce((a, r) => a + Number(r.amount), 0);
-  const balance = income - expense;
+  const savingItems = (savings.data ?? []).map(savingToGoal);
+  const futureItems = (futures.data ?? []).map(futureToGoal);
 
-  const byCategory = Object.entries(
-    monthRows
-      .filter((r) => r.type === "expense")
-      .reduce<Record<string, number>>((acc, r) => {
-        acc[r.category] = (acc[r.category] ?? 0) + Number(r.amount);
-        return acc;
-      }, {}),
-  ).map(([name, value]) => ({ name, value }));
+  async function submitGoal(v: GoalFormValues) {
+    if (!goalForm) return;
+    const id = goalForm.item?.id;
+    if (goalForm.kind === "saving") {
+      await saveSaving.mutateAsync({ ...(id ? { id } : {}), name: v.name, target: v.target, current: v.saved, photo_path: v.photo_path });
+    } else {
+      await saveFuture.mutateAsync({
+        ...(id ? { id } : { done: false }),
+        name: v.name,
+        amount: v.target,
+        saved: v.saved,
+        target_date: v.date,
+        note: v.note ?? null,
+        photo_path: v.photo_path,
+      });
+    }
+  }
 
-  const trend = Array.from({ length: 6 }).map((_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-    const inMonth = rows.filter((r) => {
-      const rd = new Date(r.date);
-      return rd.getMonth() === d.getMonth() && rd.getFullYear() === d.getFullYear();
-    });
-    return {
-      mes: MONTHS[d.getMonth()]!.slice(0, 3),
-      receitas: inMonth.filter((r) => r.type === "income").reduce((a, r) => a + Number(r.amount), 0),
-      despesas: inMonth.filter((r) => r.type === "expense").reduce((a, r) => a + Number(r.amount), 0),
-    };
-  });
+  const pending = futureItems.filter((f) => !f.done);
+  const totalNeeded = pending.reduce((a, f) => a + Math.max(0, f.target - f.saved), 0);
+  const totalFutureSaved = pending.reduce((a, f) => a + f.saved, 0);
+  const totalReserved = savingItems.reduce((a, s) => a + s.saved, 0);
 
   return (
     <>
       <PageHeader
         title="Finanças"
-        subtitle={`${MONTHS[now.getMonth()]} de ${now.getFullYear()}`}
+        subtitle="Seu dinheiro, mês a mês"
         action={
           <Button onClick={() => setOpenTx(true)}>
             <Plus className="size-4" /> Lançamento
@@ -182,25 +152,22 @@ function FinancePage() {
         }
       />
 
-      <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1">
+      <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
         {(
           [
             ["resumo", "Resumo"],
             ["lancamentos", "Lançamentos"],
-            ["contas", "Contas"],
             ["compras", "Compras"],
-            ["futuros", "Futuros gastos"],
             ["reserva", "Reserva"],
+            ["contas", "Contas"],
           ] as const
         ).map(([v, label]) => (
           <button
             key={v}
             onClick={() => setTab(v)}
             className={cn(
-              "shrink-0 rounded-full border px-3.5 py-1.5 text-xs",
-              tab === v
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border text-muted-foreground",
+              "shrink-0 rounded-full border px-3.5 py-1.5 text-xs transition-colors",
+              tab === v ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground",
             )}
           >
             {label}
@@ -210,68 +177,7 @@ function FinancePage() {
 
       <ErrorNote error={tx.error} />
 
-      {tab === "resumo" && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-2">
-            <StatCard label="Receitas" value={money(income)} />
-            <StatCard label="Despesas" value={money(expense)} />
-            <StatCard
-              label="Saldo"
-              value={money(balance)}
-              tone={balance >= 0 ? "positive" : "negative"}
-            />
-          </div>
-
-          <div className="surface p-4">
-            <h2 className="text-sm font-medium">Receitas x despesas</h2>
-            <div className="mt-4 h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trend}>
-                  <XAxis dataKey="mes" tickLine={false} axisLine={false} fontSize={12} />
-                  <YAxis width={44} tickLine={false} axisLine={false} fontSize={11} />
-                  <Tooltip formatter={(v: number) => money(v)} />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="receitas"
-                    stroke="var(--color-chart-2)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="despesas"
-                    stroke="var(--color-chart-1)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="surface p-4">
-            <h2 className="text-sm font-medium">Gastos por categoria</h2>
-            {byCategory.length === 0 ? (
-              <p className="mt-2 text-sm text-muted-foreground">Sem despesas neste mês.</p>
-            ) : (
-              <div className="mt-2 h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={byCategory} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80}>
-                      {byCategory.map((_, i) => (
-                        <Cell key={i} fill={PIE[i % PIE.length]} />
-                      ))}
-                    </Pie>
-                    <Legend />
-                    <Tooltip formatter={(v: number) => money(v)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {tab === "resumo" && (tx.isLoading ? <LoadingList /> : <MonthSummary rows={rows} />)}
 
       {tab === "lancamentos" &&
         (tx.isLoading ? (
@@ -297,25 +203,15 @@ function FinancePage() {
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(r.date).toLocaleDateString("pt-BR")} · {r.category}
+                    {new Date(`${r.date}T00:00:00`).toLocaleDateString("pt-BR")} · {r.category}
                     {r.payment_method ? ` · ${r.payment_method}` : ""}
                   </p>
                 </div>
-                <span
-                  className={cn(
-                    "num text-sm font-medium",
-                    r.type === "income" ? "text-[var(--color-positive)]" : "text-destructive",
-                  )}
-                >
+                <span className={cn("num text-sm font-medium", r.type === "income" ? "text-[var(--color-positive)]" : "text-destructive")}>
                   {r.type === "income" ? "+" : "−"}
                   {money(Number(r.amount))}
                 </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Excluir"
-                  onClick={() => removeTx.mutate(r.id)}
-                >
+                <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => removeTx.mutate(r.id)}>
                   <Trash2 className="size-4 text-muted-foreground" />
                 </Button>
               </li>
@@ -332,251 +228,157 @@ function FinancePage() {
 
       {tab === "compras" && (
         <div className="space-y-3">
+          <ErrorNote error={futures.error} />
+          <div className="grid grid-cols-2 gap-2">
+            <StatCard label="Falta economizar" value={money(totalNeeded)} tone="negative" />
+            <StatCard label="Já guardado" value={money(totalFutureSaved)} tone="positive" />
+          </div>
           <SectionTitle
             action={
-              <Button size="sm" variant="secondary" onClick={() => setOpenPurchase(true)}>
+              <Button size="sm" variant="secondary" onClick={() => setGoalForm({ kind: "future", item: null })}>
                 <Plus className="size-4" /> Adicionar
               </Button>
             }
           >
             Compras planejadas
           </SectionTitle>
-          {(purchases.data ?? []).length === 0 ? (
+          {futures.isLoading ? (
+            <LoadingList />
+          ) : futureItems.length === 0 ? (
             <EmptyState
-              title="Nada planejado ainda."
-              description="Liste o que deseja comprar e acompanhe quanto já juntou."
+              title="Nenhuma compra planejada."
+              description="Cadastre o que quer comprar, o preço e a data para se organizar."
+              actionLabel="Planejar compra"
+              onAction={() => setGoalForm({ kind: "future", item: null })}
             />
           ) : (
             <ul className="space-y-2">
-              {(purchases.data ?? []).map((p) => (
-                <li key={p.id} className="surface px-4 py-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium">{p.name}</p>
-                      <p className="num text-xs text-muted-foreground">
-                        {money(Number(p.saved))} de {money(Number(p.price))} · prioridade {p.priority}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Excluir"
-                      onClick={() => removePurchase.mutate(p.id)}
-                    >
-                      <Trash2 className="size-4 text-muted-foreground" />
-                    </Button>
-                  </div>
-                  <div className="mt-3">
-                    <Bar value={(Number(p.saved) / Math.max(1, Number(p.price))) * 100} />
-                  </div>
-                  <Input
-                    type="number"
-                    step="any"
-                    aria-label="Valor guardado"
-                    defaultValue={p.saved}
-                    className="mt-3 h-9 w-36"
-                    onBlur={(e) => savePurchase.mutate({ id: p.id, saved: Number(e.target.value) })}
-                  />
-                </li>
+              {[...futureItems].sort((a, b) => Number(a.done) - Number(b.done)).map((f) => (
+                <GoalCard
+                  key={f.id}
+                  item={f}
+                  onEdit={() => setGoalForm({ kind: "future", item: f })}
+                  onDelete={() => setConfirmDel({ kind: "future", item: f })}
+                  onAddMoney={() => setAddMoney({ kind: "future", item: f })}
+                  onToggleDone={() => saveFuture.mutate({ id: f.id, done: !f.done })}
+                />
               ))}
             </ul>
           )}
         </div>
       )}
 
-      {tab === "futuros" &&
-        (() => {
-          const items = futures.data ?? [];
-          const pendingItems = items.filter((f) => !f.done);
-          const totalNeeded = pendingItems.reduce(
-            (a, f) => a + Math.max(0, Number(f.amount) - Number(f.saved)),
-            0,
-          );
-          const totalSaved = pendingItems.reduce((a, f) => a + Number(f.saved), 0);
-          return (
-            <div className="space-y-3">
-              <ErrorNote error={futures.error} />
-              <div className="grid grid-cols-2 gap-2">
-                <StatCard label="Falta economizar" value={money(totalNeeded)} tone="negative" />
-                <StatCard label="Já guardado" value={money(totalSaved)} tone="positive" />
-              </div>
-
-              <SectionTitle
-                action={
-                  <Button size="sm" variant="secondary" onClick={() => setOpenFuture(true)}>
-                    <Plus className="size-4" /> Adicionar
-                  </Button>
-                }
-              >
-                Futuros gastos
-              </SectionTitle>
-
-              {futures.isLoading ? (
-                <LoadingList />
-              ) : items.length === 0 ? (
-                <EmptyState
-                  title="Nenhum gasto futuro."
-                  description="Liste o que você precisa comprar e a data prevista para se organizar."
-                  actionLabel="Adicionar item"
-                  onAction={() => setOpenFuture(true)}
-                />
-              ) : (
-                <ul className="space-y-2">
-                  {items.map((f) => {
-                    const amount = Number(f.amount);
-                    const saved = Number(f.saved);
-                    const missing = Math.max(0, amount - saved);
-                    const days = Math.ceil(
-                      (new Date(`${f.target_date}T00:00:00`).getTime() -
-                        new Date(new Date().toDateString()).getTime()) /
-                        86400000,
-                    );
-                    return (
-                      <li key={f.id} className={cn("surface px-4 py-4", f.done && "opacity-60")}>
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p
-                              className={cn(
-                                "truncate text-sm font-medium",
-                                f.done && "line-through",
-                              )}
-                            >
-                              {f.name}
-                            </p>
-                            <p className="num text-xs text-muted-foreground">
-                              {money(saved)} de {money(amount)} ·{" "}
-                              {new Date(`${f.target_date}T00:00:00`).toLocaleDateString("pt-BR")}
-                              {!f.done &&
-                                (days >= 0 ? ` · em ${days} dia(s)` : ` · ${-days} dia(s) atrás`)}
-                            </p>
-                            {f.note && (
-                              <p className="mt-0.5 truncate text-xs text-muted-foreground">{f.note}</p>
-                            )}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Excluir"
-                            onClick={() => removeFuture.mutate(f.id)}
-                          >
-                            <Trash2 className="size-4 text-muted-foreground" />
-                          </Button>
-                        </div>
-                        <div className="mt-3">
-                          <Bar value={(saved / Math.max(1, amount)) * 100} />
-                        </div>
-                        <div className="mt-3 flex items-center gap-2">
-                          <Input
-                            type="number"
-                            step="any"
-                            aria-label="Valor guardado"
-                            defaultValue={saved}
-                            className="h-9 w-32"
-                            onBlur={(e) =>
-                              saveFuture.mutate({ id: f.id, saved: Number(e.target.value) })
-                            }
-                          />
-                          <span className="num text-xs text-muted-foreground">
-                            falta {money(missing)}
-                          </span>
-                          <Button
-                            size="sm"
-                            variant={f.done ? "secondary" : "outline"}
-                            className="ml-auto"
-                            onClick={() => saveFuture.mutate({ id: f.id, done: !f.done })}
-                          >
-                            {f.done ? "Reabrir" : "Comprado"}
-                          </Button>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          );
-        })()}
-
       {tab === "reserva" && (
         <div className="space-y-3">
+          <ErrorNote error={savings.error} />
+          <StatCard label="Total reservado" value={money(totalReserved)} tone="positive" />
           <SectionTitle
             action={
-              <Button size="sm" variant="secondary" onClick={() => setOpenSaving(true)}>
+              <Button size="sm" variant="secondary" onClick={() => setGoalForm({ kind: "saving", item: null })}>
                 <Plus className="size-4" /> Adicionar
               </Button>
             }
           >
             Reservas
           </SectionTitle>
-          {(savings.data ?? []).length === 0 ? (
+          {savings.isLoading ? (
+            <LoadingList />
+          ) : savingItems.length === 0 ? (
             <EmptyState
               title="Nenhuma reserva criada."
-              description="Crie uma reserva de emergência e acompanhe o progresso."
+              description="Crie um objetivo, como “Tênis novo”, e acompanhe quanto já guardou."
+              actionLabel="Criar reserva"
+              onAction={() => setGoalForm({ kind: "saving", item: null })}
             />
           ) : (
             <ul className="space-y-2">
-              {(savings.data ?? []).map((s) => (
-                <li key={s.id} className="surface px-4 py-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium">{s.name}</p>
-                      <p className="num text-xs text-muted-foreground">
-                        {money(Number(s.current))} de {money(Number(s.target))}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Excluir"
-                      onClick={() => removeSaving.mutate(s.id)}
-                    >
-                      <Trash2 className="size-4 text-muted-foreground" />
-                    </Button>
-                  </div>
-                  <div className="mt-3">
-                    <Bar value={(Number(s.current) / Math.max(1, Number(s.target))) * 100} />
-                  </div>
-                  <Input
-                    type="number"
-                    step="any"
-                    aria-label="Valor atual"
-                    defaultValue={s.current}
-                    className="mt-3 h-9 w-36"
-                    onBlur={(e) => saveSaving.mutate({ id: s.id, current: Number(e.target.value) })}
-                  />
-                </li>
+              {savingItems.map((s) => (
+                <GoalCard
+                  key={s.id}
+                  item={s}
+                  onEdit={() => setGoalForm({ kind: "saving", item: s })}
+                  onDelete={() => setConfirmDel({ kind: "saving", item: s })}
+                  onAddMoney={() => setAddMoney({ kind: "saving", item: s })}
+                />
               ))}
             </ul>
           )}
         </div>
       )}
 
+      <GoalFormModal
+        open={!!goalForm}
+        onOpenChange={(v) => !v && setGoalForm(null)}
+        title={
+          goalForm?.kind === "future"
+            ? goalForm.item ? "Editar compra" : "Nova compra"
+            : goalForm?.item ? "Editar reserva" : "Nova reserva"
+        }
+        initial={goalForm?.item ?? null}
+        withDate={goalForm?.kind === "future"}
+        targetLabel={goalForm?.kind === "future" ? "Preço" : "Meta"}
+        onSubmit={submitGoal}
+      />
+
+      <AddMoneyModal
+        item={addMoney?.item ?? null}
+        onOpenChange={(v) => !v && setAddMoney(null)}
+        onSubmit={async (next) => {
+          if (!addMoney) return;
+          if (addMoney.kind === "saving") await saveSaving.mutateAsync({ id: addMoney.item.id, current: next });
+          else await saveFuture.mutateAsync({ id: addMoney.item.id, saved: next });
+        }}
+      />
+
+      <AlertDialog open={!!confirmDel} onOpenChange={(v) => !v && setConfirmDel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir “{confirmDel?.item.name}”?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!confirmDel) return;
+                const { kind, item } = confirmDel;
+                setConfirmDel(null);
+                if (kind === "saving") await removeSaving.mutateAsync(item.id);
+                else await removeFuture.mutateAsync(item.id);
+                await removeFinancePhoto(item.photo_path);
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <FormModal open={openTx} onOpenChange={setOpenTx} title="Novo lançamento">
         <form
           className="space-y-4"
           onSubmit={async (e) => {
             e.preventDefault();
+            const amount = parseMoney(txForm.amount);
+            if (amount === null || amount <= 0) {
+              toast.error("Informe um valor maior que zero.");
+              return;
+            }
             await saveTx.mutateAsync({
               type: txForm.type,
               description: txForm.description.trim(),
-              amount: Number(txForm.amount),
+              amount,
               category: txForm.category,
               date: txForm.date,
             });
-            setTxForm({ ...txForm, description: "", amount: 0 });
+            setTxForm({ ...txForm, description: "", amount: "" });
             setOpenTx(false);
           }}
         >
           <Field label="Tipo">
             <Select
               value={txForm.type}
-              onValueChange={(v) =>
-                setTxForm({
-                  ...txForm,
-                  type: v,
-                  category: v === "income" ? "Salário" : "Alimentação",
-                })
-              }
+              onValueChange={(v) => setTxForm({ ...txForm, type: v, category: v === "income" ? "Salário" : "Alimentação" })}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -588,36 +390,18 @@ function FinancePage() {
             </Select>
           </Field>
           <Field label="Descrição">
-            <Input
-              value={txForm.description}
-              onChange={(e) => setTxForm({ ...txForm, description: e.target.value })}
-              required
-            />
+            <Input value={txForm.description} onChange={(e) => setTxForm({ ...txForm, description: e.target.value })} required />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Valor (R$)">
-              <Input
-                type="number"
-                step="0.01"
-                min={0}
-                value={txForm.amount}
-                onChange={(e) => setTxForm({ ...txForm, amount: Number(e.target.value) })}
-                required
-              />
+            <Field label="Valor">
+              <MoneyInput value={txForm.amount} onChange={(v) => setTxForm({ ...txForm, amount: v })} required />
             </Field>
             <Field label="Data">
-              <Input
-                type="date"
-                value={txForm.date}
-                onChange={(e) => setTxForm({ ...txForm, date: e.target.value })}
-              />
+              <Input type="date" value={txForm.date} onChange={(e) => setTxForm({ ...txForm, date: e.target.value })} />
             </Field>
           </div>
           <Field label="Categoria">
-            <Select
-              value={txForm.category}
-              onValueChange={(v) => setTxForm({ ...txForm, category: v })}
-            >
+            <Select value={txForm.category} onValueChange={(v) => setTxForm({ ...txForm, category: v })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -631,180 +415,6 @@ function FinancePage() {
             </Select>
           </Field>
           <Button type="submit" className="w-full" disabled={saveTx.isPending}>
-            Salvar
-          </Button>
-        </form>
-      </FormModal>
-
-      <FormModal open={openPurchase} onOpenChange={setOpenPurchase} title="Compra planejada">
-        <form
-          className="space-y-4"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            await savePurchase.mutateAsync({
-              name: pForm.name.trim(),
-              price: Number(pForm.price),
-              priority: pForm.priority,
-              saved: Number(pForm.saved),
-              bought: false,
-            });
-            setPForm({ name: "", price: 0, priority: "media", saved: 0 });
-            setOpenPurchase(false);
-          }}
-        >
-          <Field label="Item">
-            <Input
-              value={pForm.name}
-              onChange={(e) => setPForm({ ...pForm, name: e.target.value })}
-              required
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Preço (R$)">
-              <Input
-                type="number"
-                step="0.01"
-                value={pForm.price}
-                onChange={(e) => setPForm({ ...pForm, price: Number(e.target.value) })}
-                required
-              />
-            </Field>
-            <Field label="Já guardado (R$)">
-              <Input
-                type="number"
-                step="0.01"
-                value={pForm.saved}
-                onChange={(e) => setPForm({ ...pForm, saved: Number(e.target.value) })}
-              />
-            </Field>
-          </div>
-          <Field label="Prioridade">
-            <Select value={pForm.priority} onValueChange={(v) => setPForm({ ...pForm, priority: v })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="baixa">Baixa</SelectItem>
-                <SelectItem value="media">Média</SelectItem>
-                <SelectItem value="alta">Alta</SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
-          <Button type="submit" className="w-full">
-            Salvar
-          </Button>
-        </form>
-      </FormModal>
-
-      <FormModal open={openFuture} onOpenChange={setOpenFuture} title="Novo gasto futuro">
-        <form
-          className="space-y-4"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            await saveFuture.mutateAsync({
-              name: fForm.name.trim(),
-              amount: Number(fForm.amount),
-              saved: Number(fForm.saved),
-              target_date: fForm.target_date,
-              note: fForm.note.trim() || null,
-              done: false,
-            });
-            setFForm({ name: "", amount: 0, saved: 0, target_date: toISODate(), note: "" });
-            setOpenFuture(false);
-          }}
-        >
-          <Field label="Item">
-            <Input
-              value={fForm.name}
-              onChange={(e) => setFForm({ ...fForm, name: e.target.value })}
-              placeholder="Ex.: Notebook novo"
-              required
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Valor (R$)">
-              <Input
-                type="number"
-                step="0.01"
-                min={0}
-                value={fForm.amount}
-                onChange={(e) => setFForm({ ...fForm, amount: Number(e.target.value) })}
-                required
-              />
-            </Field>
-            <Field label="Já guardado (R$)">
-              <Input
-                type="number"
-                step="0.01"
-                min={0}
-                value={fForm.saved}
-                onChange={(e) => setFForm({ ...fForm, saved: Number(e.target.value) })}
-              />
-            </Field>
-          </div>
-          <Field label="Data da compra">
-            <Input
-              type="date"
-              value={fForm.target_date}
-              onChange={(e) => setFForm({ ...fForm, target_date: e.target.value })}
-              required
-            />
-          </Field>
-          <Field label="Observação">
-            <Input
-              value={fForm.note}
-              onChange={(e) => setFForm({ ...fForm, note: e.target.value })}
-              placeholder="Opcional"
-            />
-          </Field>
-          <Button type="submit" className="w-full" disabled={saveFuture.isPending}>
-            Salvar
-          </Button>
-        </form>
-      </FormModal>
-
-      <FormModal open={openSaving} onOpenChange={setOpenSaving} title="Nova reserva">
-        <form
-          className="space-y-4"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            await saveSaving.mutateAsync({
-              name: sForm.name.trim(),
-              target: Number(sForm.target),
-              current: Number(sForm.current),
-            });
-            setSForm({ name: "", target: 0, current: 0 });
-            setOpenSaving(false);
-          }}
-        >
-          <Field label="Nome">
-            <Input
-              value={sForm.name}
-              onChange={(e) => setSForm({ ...sForm, name: e.target.value })}
-              placeholder="Reserva de emergência"
-              required
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Meta (R$)">
-              <Input
-                type="number"
-                step="0.01"
-                value={sForm.target}
-                onChange={(e) => setSForm({ ...sForm, target: Number(e.target.value) })}
-                required
-              />
-            </Field>
-            <Field label="Atual (R$)">
-              <Input
-                type="number"
-                step="0.01"
-                value={sForm.current}
-                onChange={(e) => setSForm({ ...sForm, current: Number(e.target.value) })}
-              />
-            </Field>
-          </div>
-          <Button type="submit" className="w-full">
             Salvar
           </Button>
         </form>

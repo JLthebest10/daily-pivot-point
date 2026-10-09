@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
-import { applyPrimaryColor, cachePrimaryColor, isValidHex } from "@/lib/theme-color";
+import { applyPrimaryColor, cachePrimaryColor, cachedPrimaryColor, isValidHex } from "@/lib/theme-color";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,9 @@ export function ThemeColorPicker() {
     setHex(saved ?? FACTORY_HINT);
     setText(saved ?? "");
   }, [saved]);
+
+  // Leaving the screen without saving reverts the live preview.
+  useEffect(() => () => applyPrimaryColor(cachedPrimaryColor()), []);
 
   function preview(v: string) {
     setHex(v);
