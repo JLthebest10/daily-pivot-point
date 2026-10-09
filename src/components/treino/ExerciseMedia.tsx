@@ -12,7 +12,7 @@ export async function uploadExerciseMedia(file: File, kind: "image" | "video") {
   const path = `${uid}/exercises/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage
     .from("media")
-    .upload(path, file, { contentType: file.type || undefined });
+    .upload(path, file, file.type ? { contentType: file.type } : {});
   if (error) throw error;
   return path;
 }

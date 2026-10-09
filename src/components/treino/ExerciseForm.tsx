@@ -57,9 +57,14 @@ export function ExerciseForm({
     const picked = e.target.files?.[0];
     e.target.value = "";
     if (!picked) return;
-    if (!mediaKind(picked)) return toast.error("Formato não suportado. Use imagem ou vídeo.");
-    if (picked.size > MAX_MEDIA_MB * 1024 * 1024)
-      return toast.error(`Arquivo muito grande (máx. ${MAX_MEDIA_MB} MB).`);
+    if (!mediaKind(picked)) {
+      toast.error("Formato não suportado. Use imagem ou vídeo.");
+      return;
+    }
+    if (picked.size > MAX_MEDIA_MB * 1024 * 1024) {
+      toast.error(`Arquivo muito grande (máx. ${MAX_MEDIA_MB} MB).`);
+      return;
+    }
     if (preview) URL.revokeObjectURL(preview);
     setFile(picked);
     setPreview(URL.createObjectURL(picked));

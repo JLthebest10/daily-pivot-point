@@ -448,7 +448,10 @@ function WorkoutDetail() {
         note: pForm.note.trim() || null,
       })
       .eq("id", editing.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await qc.invalidateQueries({ queryKey: ["exercises"] });
     toast.success("Prescrição atualizada");
     setEditing(null);
@@ -456,7 +459,10 @@ function WorkoutDetail() {
 
   async function archive(ex: WorkoutExercise) {
     const { error } = await db.from("exercises").update({ archived: true }).eq("id", ex.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await qc.invalidateQueries({ queryKey: ["exercises"] });
     toast.success("Removido do treino (continua na biblioteca)");
     setRemoving(null);
