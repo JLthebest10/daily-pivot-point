@@ -169,7 +169,10 @@ function NewListModal({ open, onOpenChange, fixed }: { open: boolean; onOpenChan
   }
 
   async function submit() {
-    if (!title.trim() || !date) return toast.error("Preencha o nome e a data.");
+    if (!title.trim() || !date) {
+      toast.error("Preencha o nome e a data.");
+      return;
+    }
     setBusy(true);
     try {
       const list = await createBagList({
