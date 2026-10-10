@@ -3,7 +3,8 @@ import { useState } from "react";
 import { BookOpen, LayoutGrid, List, Play, Plus, Search, Star } from "lucide-react";
 import { useList } from "@/lib/db";
 import { shortDate, toISODate } from "@/lib/format";
-import { DIFFICULTY_LABEL, filterSongs, songChords, type Song } from "@/lib/guitar";
+import { DIFFICULTY_LABEL, chordLabel, filterSongs, songChords, type Song } from "@/lib/guitar";
+import { useCustomChords } from "@/components/violao/ChordPicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState, ErrorNote, FormModal, LoadingList, PageHeader } from "@/components/ui-kit";
@@ -31,6 +32,7 @@ function RepertoirePage() {
   const [fav, setFav] = useState(false);
   const [grid, setGrid] = useState(false);
   const navigate = useNavigate();
+  const custom = useCustomChords();
   const songs = q.data ?? [];
   const list = filterSongs(songs, query, fav);
 
@@ -87,7 +89,7 @@ function RepertoirePage() {
           ) : (
             <ul className={cn(grid ? "grid grid-cols-2 gap-2 sm:grid-cols-3" : "space-y-2")}>
               {list.map((s) => {
-                const chords = songChords(s.sections ?? []);
+                const chords = songChords(s).map((c) => chordLabel(c, custom));
                 return (
                   <li key={s.id} className="surface relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40">
                     <Link to="/violao/$id" params={{ id: s.id }} className="min-w-0 flex-1 after:absolute after:inset-0">
