@@ -20,6 +20,7 @@ import { shortDate } from "@/lib/format";
 import {
   PRIORITY_LABEL,
   STATUS_LABEL,
+  STATUS_STYLE,
   parseImport,
   topicStatus,
   type Card,
@@ -40,7 +41,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Field, FormModal, LoadingList, PageHeader, SectionTitle } from "@/components/ui-kit";
 import { TopicForm } from "@/components/flashcards/TopicForm";
-import { STATUS_STYLE } from "./flashcards.index";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/flashcards/$id")({

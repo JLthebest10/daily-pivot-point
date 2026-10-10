@@ -31,6 +31,12 @@ export const STATUS_LABEL: Record<TopicStatus, string> = {
   concluido: "Concluído",
 };
 
+export const STATUS_STYLE: Record<TopicStatus, string> = {
+  pendente: "bg-muted text-muted-foreground",
+  andamento: "bg-accent text-accent-foreground",
+  concluido: "bg-primary/15 text-primary",
+};
+
 export const PRIORITY_LABEL = { baixa: "Baixa", media: "Média", alta: "Alta" } as const;
 
 /** Concluído só quando o usuário declara; senão depende de ter cartões. */

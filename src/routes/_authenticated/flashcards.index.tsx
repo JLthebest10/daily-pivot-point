@@ -2,10 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ChevronRight, Plus, Search } from "lucide-react";
 import { useList } from "@/lib/db";
-import { shortDate } from "@/lib/format";
+import { shortDate, toISODate } from "@/lib/format";
 import {
   PRIORITY_LABEL,
   STATUS_LABEL,
+  STATUS_STYLE,
   countByTopic,
   filterAndSort,
   statusCounts,
@@ -14,7 +15,6 @@ import {
   type SortKey,
   type StatusFilter,
   type Topic,
-  type TopicStatus,
 } from "@/lib/flashcards";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,11 +36,6 @@ export const Route = createFileRoute("/_authenticated/flashcards/")({
   component: FlashcardsPage,
 });
 
-export const STATUS_STYLE: Record<TopicStatus, string> = {
-  pendente: "bg-muted text-muted-foreground",
-  andamento: "bg-accent text-accent-foreground",
-  concluido: "bg-primary/15 text-primary",
-};
 
 const FILTERS: { key: StatusFilter; label: string }[] = [
   { key: "todos", label: "Todos" },
@@ -164,7 +159,7 @@ function FlashcardsPage() {
                           {[
                             t.category,
                             `${n} ${n === 1 ? "cartão" : "cartões"}`,
-                            `adicionado ${shortDate(t.created_at.slice(0, 10))}`,
+                            `adicionado ${shortDate(toISODate(new Date(t.created_at)))}`,
                             t.priority && `prioridade ${PRIORITY_LABEL[t.priority].toLowerCase()}`,
                             t.deadline && `prazo ${shortDate(t.deadline)}`,
                           ]
