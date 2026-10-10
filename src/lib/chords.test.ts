@@ -15,17 +15,17 @@ describe("chord library", () => {
     }
   });
   it("standard open shapes are correct", () => {
-    expect(findVoicings("C")[0].frets).toEqual([null, 3, 2, 0, 1, 0]);
-    expect(findVoicings("F")[0].frets).toEqual([1, 3, 3, 2, 1, 1]);
-    expect(findVoicings("F")[0].barre).toEqual({ fret: 1, from: 0, to: 5 });
-    expect(findVoicings("Bm")[0].frets).toEqual([null, 2, 4, 4, 3, 2]);
+    expect(findVoicings("C")[0]!.frets).toEqual([null, 3, 2, 0, 1, 0]);
+    expect(findVoicings("F")[0]!.frets).toEqual([1, 3, 3, 2, 1, 1]);
+    expect(findVoicings("F")[0]!.barre).toEqual({ fret: 1, from: 0, to: 5 });
+    expect(findVoicings("Bm")[0]!.frets).toEqual([null, 2, 4, 4, 3, 2]);
   });
   it("rejects wrong notes", () => {
     expect(verifyVoicing([null, 3, 2, 0, 1, 0], "A", "m")).toBe(false);
   });
   it("search understands flats and aliases", () => {
     expect(searchChords("Bb", CHORD_LIBRARY).every((v) => v.root === "A#" && v.suffix === "")).toBe(true);
-    expect(searchChords("C7M", CHORD_LIBRARY)[0].name).toBe("Cmaj7");
-    expect(searchChords("C/E", CHORD_LIBRARY)[0].frets).toEqual([0, 3, 2, 0, 1, 0]);
+    expect(searchChords("C7M", CHORD_LIBRARY)[0]!.name).toBe("Cmaj7");
+    expect(searchChords("C/E", CHORD_LIBRARY)[0]!.frets).toEqual([0, 3, 2, 0, 1, 0]);
   });
 });

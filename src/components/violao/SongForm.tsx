@@ -40,7 +40,7 @@ export function SongForm({ initial, onDone }: { initial?: Song; onDone: (id?: st
       const j = i + d;
       if (j < 0 || j >= s.length) return s;
       const c = [...s];
-      [c[i], c[j]] = [c[j], c[i]];
+      [c[i], c[j]] = [c[j]!, c[i]!];
       return c;
     });
 

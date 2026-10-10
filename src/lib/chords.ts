@@ -100,7 +100,7 @@ const SUFFIX_ALIASES: Record<string, string> = {
 
 export function normalizeNote(n: string): string | null {
   if (!n) return null;
-  const up = n[0].toUpperCase() + n.slice(1).replace("♯", "#").replace("♭", "b");
+  const up = n[0]!.toUpperCase() + n.slice(1).replace("♯", "#").replace("♭", "b");
   if ((NOTES as readonly string[]).includes(up)) return up;
   return ALIASES[up.toUpperCase()] ?? null;
 }
@@ -109,7 +109,7 @@ export function parseChordName(raw: string): { root: string; suffix: string; bas
   const s = raw.trim().replace(/\s+/g, "");
   const m = /^([A-Ga-g][#b♯♭]?)([^/]*)(?:\/([A-Ga-g][#b♯♭]?))?$/.exec(s);
   if (!m) return null;
-  const root = normalizeNote(m[1]);
+  const root = normalizeNote(m[1]!);
   if (!root) return null;
   let suffix = m[2] ?? "";
   if (!QMAP.has(suffix)) suffix = SUFFIX_ALIASES[suffix] ?? suffix;
@@ -130,7 +130,7 @@ export function noteLabel(n: string) {
 const pc = (n: string) => NOTES.indexOf(n as (typeof NOTES)[number]);
 
 export function voicingNotes(frets: Fret[]): number[] {
-  return frets.flatMap((f, i) => (f == null ? [] : [(TUNING[i] + f) % 12]));
+  return frets.flatMap((f, i) => (f == null ? [] : [(TUNING[i]! + f) % 12]));
 }
 
 export function verifyVoicing(frets: Fret[], root: string, suffix: string, bass: string | null = null) {
@@ -160,8 +160,8 @@ export function assignFingers(frets: Fret[]) {
   let rest = pressed;
   let next = 1;
   if (atMin.length >= 2) {
-    const from = atMin[0].i;
-    const to = atMin[atMin.length - 1].i;
+    const from = atMin[0]!.i;
+    const to = atMin[atMin.length - 1]!.i;
     const blocked = frets.slice(from, to + 1).some((f) => f === 0 || (f != null && f < min));
     if (!blocked && pressed.length > 4) {
       barre = { fret: min, from, to };
@@ -209,8 +209,8 @@ export function buildVoicing(
   if (explicitFingers) {
     // barre = finger 1 on 2+ strings at the same fret
     const ones = frets.map((f, i) => ({ f, i })).filter((x) => explicitFingers[x.i] === 1 && x.f);
-    barre = ones.length >= 2 && ones.every((o) => o.f === ones[0].f)
-      ? { fret: ones[0].f as number, from: ones[0].i, to: ones[ones.length - 1].i }
+    barre = ones.length >= 2 && ones.every((o) => o.f === ones[0]!.f)
+      ? { fret: ones[0]!.f as number, from: ones[0]!.i, to: ones[ones.length - 1]!.i }
       : null;
   }
   return {
@@ -339,7 +339,7 @@ const MOVABLE: { suffix: string; rootString: number; shape: (number | null)[] }[
 ];
 
 function transpose(m: (typeof MOVABLE)[number], root: string): Fret[] | null {
-  const base = (pc(root) - TUNING[m.rootString] + 12) % 12;
+  const base = (pc(root) - TUNING[m.rootString]! + 12) % 12;
   for (const r of [base, base + 12]) {
     const frets = m.shape.map((o) => (o == null ? null : o + r));
     const used = frets.filter((f): f is number => f != null);
