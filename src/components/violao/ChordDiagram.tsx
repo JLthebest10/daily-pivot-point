@@ -86,7 +86,6 @@ export const ChordDiagram = memo(function ChordDiagram({
             </g>
           ) : null,
         )}
-        <text x={sx(0)} y={top + h + 6} textAnchor="middle" fontSize="0" />
       </svg>
     </figure>
   );

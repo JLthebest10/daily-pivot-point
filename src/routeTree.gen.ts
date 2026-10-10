@@ -40,6 +40,9 @@ import { Route as AuthenticatedHabitosIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedTreinoIndexRouteImport } from './routes/_authenticated/treino.index'
 import { Route as AuthenticatedTreinoIdRouteImport } from './routes/_authenticated/treino.$id'
 import { Route as AuthenticatedTreinoExerciciosRouteImport } from './routes/_authenticated/treino.exercicios'
+import { Route as AuthenticatedViolaoIndexRouteImport } from './routes/_authenticated/violao.index'
+import { Route as AuthenticatedViolaoIdRouteImport } from './routes/_authenticated/violao.$id'
+import { Route as AuthenticatedViolaoAcordesRouteImport } from './routes/_authenticated/violao.acordes'
 import { Route as ApiPublicSiriEventsRouteImport } from './routes/api/public/siri/events'
 
 const IndexRoute = IndexRouteImport.update({
@@ -207,6 +210,23 @@ const AuthenticatedTreinoExerciciosRoute =
     path: '/treino/exercicios',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedViolaoIndexRoute =
+  AuthenticatedViolaoIndexRouteImport.update({
+    id: '/violao/',
+    path: '/violao/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedViolaoIdRoute = AuthenticatedViolaoIdRouteImport.update({
+  id: '/violao/$id',
+  path: '/violao/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedViolaoAcordesRoute =
+  AuthenticatedViolaoAcordesRouteImport.update({
+    id: '/violao/acordes',
+    path: '/violao/acordes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicSiriEventsRoute = ApiPublicSiriEventsRouteImport.update({
   id: '/api/public/siri/events',
   path: '/api/public/siri/events',
@@ -238,12 +258,15 @@ export interface FileRoutesByFullPath {
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/treino/exercicios': typeof AuthenticatedTreinoExerciciosRoute
+  '/violao/$id': typeof AuthenticatedViolaoIdRoute
+  '/violao/acordes': typeof AuthenticatedViolaoAcordesRoute
   '/alunos/': typeof AuthenticatedAlunosIndexRoute
   '/bolsa/': typeof AuthenticatedBolsaIndexRoute
   '/dieta/': typeof AuthenticatedDietaIndexRoute
   '/flashcards/': typeof AuthenticatedFlashcardsIndexRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/treino/': typeof AuthenticatedTreinoIndexRoute
+  '/violao/': typeof AuthenticatedViolaoIndexRoute
   '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
 }
 export interface FileRoutesByTo {
@@ -271,12 +294,15 @@ export interface FileRoutesByTo {
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/treino/exercicios': typeof AuthenticatedTreinoExerciciosRoute
+  '/violao/$id': typeof AuthenticatedViolaoIdRoute
+  '/violao/acordes': typeof AuthenticatedViolaoAcordesRoute
   '/alunos': typeof AuthenticatedAlunosIndexRoute
   '/bolsa': typeof AuthenticatedBolsaIndexRoute
   '/dieta': typeof AuthenticatedDietaIndexRoute
   '/flashcards': typeof AuthenticatedFlashcardsIndexRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
   '/treino': typeof AuthenticatedTreinoIndexRoute
+  '/violao': typeof AuthenticatedViolaoIndexRoute
   '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
 }
 export interface FileRoutesById {
@@ -306,12 +332,15 @@ export interface FileRoutesById {
   '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/_authenticated/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/_authenticated/treino/exercicios': typeof AuthenticatedTreinoExerciciosRoute
+  '/_authenticated/violao/$id': typeof AuthenticatedViolaoIdRoute
+  '/_authenticated/violao/acordes': typeof AuthenticatedViolaoAcordesRoute
   '/_authenticated/alunos/': typeof AuthenticatedAlunosIndexRoute
   '/_authenticated/bolsa/': typeof AuthenticatedBolsaIndexRoute
   '/_authenticated/dieta/': typeof AuthenticatedDietaIndexRoute
   '/_authenticated/flashcards/': typeof AuthenticatedFlashcardsIndexRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/_authenticated/treino/': typeof AuthenticatedTreinoIndexRoute
+  '/_authenticated/violao/': typeof AuthenticatedViolaoIndexRoute
   '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
 }
 export interface FileRouteTypes {
@@ -341,12 +370,15 @@ export interface FileRouteTypes {
     | '/habitos/$id'
     | '/treino/$id'
     | '/treino/exercicios'
+    | '/violao/$id'
+    | '/violao/acordes'
     | '/alunos/'
     | '/bolsa/'
     | '/dieta/'
     | '/flashcards/'
     | '/habitos/'
     | '/treino/'
+    | '/violao/'
     | '/api/public/siri/events'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -374,12 +406,15 @@ export interface FileRouteTypes {
     | '/habitos/$id'
     | '/treino/$id'
     | '/treino/exercicios'
+    | '/violao/$id'
+    | '/violao/acordes'
     | '/alunos'
     | '/bolsa'
     | '/dieta'
     | '/flashcards'
     | '/habitos'
     | '/treino'
+    | '/violao'
     | '/api/public/siri/events'
   id:
     | '__root__'
@@ -408,12 +443,15 @@ export interface FileRouteTypes {
     | '/_authenticated/habitos/$id'
     | '/_authenticated/treino/$id'
     | '/_authenticated/treino/exercicios'
+    | '/_authenticated/violao/$id'
+    | '/_authenticated/violao/acordes'
     | '/_authenticated/alunos/'
     | '/_authenticated/bolsa/'
     | '/_authenticated/dieta/'
     | '/_authenticated/flashcards/'
     | '/_authenticated/habitos/'
     | '/_authenticated/treino/'
+    | '/_authenticated/violao/'
     | '/api/public/siri/events'
   fileRoutesById: FileRoutesById
 }
@@ -644,6 +682,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTreinoExerciciosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/violao/': {
+      id: '/_authenticated/violao/'
+      path: '/violao'
+      fullPath: '/violao/'
+      preLoaderRoute: typeof AuthenticatedViolaoIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/violao/$id': {
+      id: '/_authenticated/violao/$id'
+      path: '/violao/$id'
+      fullPath: '/violao/$id'
+      preLoaderRoute: typeof AuthenticatedViolaoIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/violao/acordes': {
+      id: '/_authenticated/violao/acordes'
+      path: '/violao/acordes'
+      fullPath: '/violao/acordes'
+      preLoaderRoute: typeof AuthenticatedViolaoAcordesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/siri/events': {
       id: '/api/public/siri/events'
       path: '/api/public/siri/events'
@@ -676,12 +735,15 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
   AuthenticatedTreinoIdRoute: typeof AuthenticatedTreinoIdRoute
   AuthenticatedTreinoExerciciosRoute: typeof AuthenticatedTreinoExerciciosRoute
+  AuthenticatedViolaoIdRoute: typeof AuthenticatedViolaoIdRoute
+  AuthenticatedViolaoAcordesRoute: typeof AuthenticatedViolaoAcordesRoute
   AuthenticatedAlunosIndexRoute: typeof AuthenticatedAlunosIndexRoute
   AuthenticatedBolsaIndexRoute: typeof AuthenticatedBolsaIndexRoute
   AuthenticatedDietaIndexRoute: typeof AuthenticatedDietaIndexRoute
   AuthenticatedFlashcardsIndexRoute: typeof AuthenticatedFlashcardsIndexRoute
   AuthenticatedHabitosIndexRoute: typeof AuthenticatedHabitosIndexRoute
   AuthenticatedTreinoIndexRoute: typeof AuthenticatedTreinoIndexRoute
+  AuthenticatedViolaoIndexRoute: typeof AuthenticatedViolaoIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -706,12 +768,15 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
   AuthenticatedTreinoIdRoute: AuthenticatedTreinoIdRoute,
   AuthenticatedTreinoExerciciosRoute: AuthenticatedTreinoExerciciosRoute,
+  AuthenticatedViolaoIdRoute: AuthenticatedViolaoIdRoute,
+  AuthenticatedViolaoAcordesRoute: AuthenticatedViolaoAcordesRoute,
   AuthenticatedAlunosIndexRoute: AuthenticatedAlunosIndexRoute,
   AuthenticatedBolsaIndexRoute: AuthenticatedBolsaIndexRoute,
   AuthenticatedDietaIndexRoute: AuthenticatedDietaIndexRoute,
   AuthenticatedFlashcardsIndexRoute: AuthenticatedFlashcardsIndexRoute,
   AuthenticatedHabitosIndexRoute: AuthenticatedHabitosIndexRoute,
   AuthenticatedTreinoIndexRoute: AuthenticatedTreinoIndexRoute,
+  AuthenticatedViolaoIndexRoute: AuthenticatedViolaoIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
