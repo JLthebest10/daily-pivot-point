@@ -172,13 +172,7 @@ export function assignFingers(frets: Fret[]) {
   }
   const sorted = [...rest].sort((a, b) => a.f - b.f || a.i - b.i);
   if (sorted.length + next - 1 > 4) return null;
-  for (const p of sorted) {
-    // leave a gap for a skipped fret when there is room (e.g. fret+2 → finger 3)
-    const ideal = p.f - min + (barre ? 1 : 1);
-    const finger = Math.max(next, Math.min(ideal, 4 - (sorted.length - sorted.indexOf(p) - 1)));
-    fingers[p.i] = finger;
-    next = finger + 1;
-  }
+  for (const p of sorted) fingers[p.i] = next++;
   return { fingers, barre };
 }
 
@@ -394,12 +388,6 @@ export function canonicalName(name: string) {
   const p = parseChordName(name);
   if (!p) return name.trim();
   return p.root + p.suffix + (p.bass ? "/" + p.bass : "");
-}
-
-export function displayName(v: { root: string; suffix: string; name: string }) {
-  const p = parseChordName(v.name);
-  if (!p) return v.name;
-  return v.name;
 }
 
 export function findVoicings(name: string, extra: Voicing[] = []): Voicing[] {
