@@ -43,6 +43,13 @@
       "when": 1791562616060,
       "tag": "0005_api_tokens",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791651537092,
+      "tag": "0006_flashcards_module",
+      "breakpoints": true
     }
   ]
 }

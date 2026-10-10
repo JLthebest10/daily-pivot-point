@@ -33,6 +33,8 @@ import { Route as AuthenticatedDietaIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedDietaCaloriasRouteImport } from './routes/_authenticated/dieta.calorias'
 import { Route as AuthenticatedDietaConsistenciaRouteImport } from './routes/_authenticated/dieta.consistencia'
 import { Route as AuthenticatedDietaEvolucaoRouteImport } from './routes/_authenticated/dieta.evolucao'
+import { Route as AuthenticatedFlashcardsIndexRouteImport } from './routes/_authenticated/flashcards.index'
+import { Route as AuthenticatedFlashcardsIdRouteImport } from './routes/_authenticated/flashcards.$id'
 import { Route as AuthenticatedHabitosIndexRouteImport } from './routes/_authenticated/habitos.index'
 import { Route as AuthenticatedHabitosIdRouteImport } from './routes/_authenticated/habitos.$id'
 import { Route as AuthenticatedTreinoIndexRouteImport } from './routes/_authenticated/treino.index'
@@ -165,6 +167,18 @@ const AuthenticatedDietaEvolucaoRoute =
     path: '/dieta/evolucao',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedFlashcardsIndexRoute =
+  AuthenticatedFlashcardsIndexRouteImport.update({
+    id: '/flashcards/',
+    path: '/flashcards/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFlashcardsIdRoute =
+  AuthenticatedFlashcardsIdRouteImport.update({
+    id: '/flashcards/$id',
+    path: '/flashcards/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHabitosIndexRoute =
   AuthenticatedHabitosIndexRouteImport.update({
     id: '/habitos/',
@@ -220,12 +234,14 @@ export interface FileRoutesByFullPath {
   '/dieta/calorias': typeof AuthenticatedDietaCaloriasRoute
   '/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
+  '/flashcards/$id': typeof AuthenticatedFlashcardsIdRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/treino/exercicios': typeof AuthenticatedTreinoExerciciosRoute
   '/alunos/': typeof AuthenticatedAlunosIndexRoute
   '/bolsa/': typeof AuthenticatedBolsaIndexRoute
   '/dieta/': typeof AuthenticatedDietaIndexRoute
+  '/flashcards/': typeof AuthenticatedFlashcardsIndexRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/treino/': typeof AuthenticatedTreinoIndexRoute
   '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
@@ -251,12 +267,14 @@ export interface FileRoutesByTo {
   '/dieta/calorias': typeof AuthenticatedDietaCaloriasRoute
   '/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
+  '/flashcards/$id': typeof AuthenticatedFlashcardsIdRoute
   '/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/treino/exercicios': typeof AuthenticatedTreinoExerciciosRoute
   '/alunos': typeof AuthenticatedAlunosIndexRoute
   '/bolsa': typeof AuthenticatedBolsaIndexRoute
   '/dieta': typeof AuthenticatedDietaIndexRoute
+  '/flashcards': typeof AuthenticatedFlashcardsIndexRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
   '/treino': typeof AuthenticatedTreinoIndexRoute
   '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
@@ -284,12 +302,14 @@ export interface FileRoutesById {
   '/_authenticated/dieta/calorias': typeof AuthenticatedDietaCaloriasRoute
   '/_authenticated/dieta/consistencia': typeof AuthenticatedDietaConsistenciaRoute
   '/_authenticated/dieta/evolucao': typeof AuthenticatedDietaEvolucaoRoute
+  '/_authenticated/flashcards/$id': typeof AuthenticatedFlashcardsIdRoute
   '/_authenticated/habitos/$id': typeof AuthenticatedHabitosIdRoute
   '/_authenticated/treino/$id': typeof AuthenticatedTreinoIdRoute
   '/_authenticated/treino/exercicios': typeof AuthenticatedTreinoExerciciosRoute
   '/_authenticated/alunos/': typeof AuthenticatedAlunosIndexRoute
   '/_authenticated/bolsa/': typeof AuthenticatedBolsaIndexRoute
   '/_authenticated/dieta/': typeof AuthenticatedDietaIndexRoute
+  '/_authenticated/flashcards/': typeof AuthenticatedFlashcardsIndexRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/_authenticated/treino/': typeof AuthenticatedTreinoIndexRoute
   '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
@@ -317,12 +337,14 @@ export interface FileRouteTypes {
     | '/dieta/calorias'
     | '/dieta/consistencia'
     | '/dieta/evolucao'
+    | '/flashcards/$id'
     | '/habitos/$id'
     | '/treino/$id'
     | '/treino/exercicios'
     | '/alunos/'
     | '/bolsa/'
     | '/dieta/'
+    | '/flashcards/'
     | '/habitos/'
     | '/treino/'
     | '/api/public/siri/events'
@@ -348,12 +370,14 @@ export interface FileRouteTypes {
     | '/dieta/calorias'
     | '/dieta/consistencia'
     | '/dieta/evolucao'
+    | '/flashcards/$id'
     | '/habitos/$id'
     | '/treino/$id'
     | '/treino/exercicios'
     | '/alunos'
     | '/bolsa'
     | '/dieta'
+    | '/flashcards'
     | '/habitos'
     | '/treino'
     | '/api/public/siri/events'
@@ -380,12 +404,14 @@ export interface FileRouteTypes {
     | '/_authenticated/dieta/calorias'
     | '/_authenticated/dieta/consistencia'
     | '/_authenticated/dieta/evolucao'
+    | '/_authenticated/flashcards/$id'
     | '/_authenticated/habitos/$id'
     | '/_authenticated/treino/$id'
     | '/_authenticated/treino/exercicios'
     | '/_authenticated/alunos/'
     | '/_authenticated/bolsa/'
     | '/_authenticated/dieta/'
+    | '/_authenticated/flashcards/'
     | '/_authenticated/habitos/'
     | '/_authenticated/treino/'
     | '/api/public/siri/events'
@@ -569,6 +595,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDietaEvolucaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/flashcards/': {
+      id: '/_authenticated/flashcards/'
+      path: '/flashcards'
+      fullPath: '/flashcards/'
+      preLoaderRoute: typeof AuthenticatedFlashcardsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/flashcards/$id': {
+      id: '/_authenticated/flashcards/$id'
+      path: '/flashcards/$id'
+      fullPath: '/flashcards/$id'
+      preLoaderRoute: typeof AuthenticatedFlashcardsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/habitos/': {
       id: '/_authenticated/habitos/'
       path: '/habitos'
@@ -632,12 +672,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDietaCaloriasRoute: typeof AuthenticatedDietaCaloriasRoute
   AuthenticatedDietaConsistenciaRoute: typeof AuthenticatedDietaConsistenciaRoute
   AuthenticatedDietaEvolucaoRoute: typeof AuthenticatedDietaEvolucaoRoute
+  AuthenticatedFlashcardsIdRoute: typeof AuthenticatedFlashcardsIdRoute
   AuthenticatedHabitosIdRoute: typeof AuthenticatedHabitosIdRoute
   AuthenticatedTreinoIdRoute: typeof AuthenticatedTreinoIdRoute
   AuthenticatedTreinoExerciciosRoute: typeof AuthenticatedTreinoExerciciosRoute
   AuthenticatedAlunosIndexRoute: typeof AuthenticatedAlunosIndexRoute
   AuthenticatedBolsaIndexRoute: typeof AuthenticatedBolsaIndexRoute
   AuthenticatedDietaIndexRoute: typeof AuthenticatedDietaIndexRoute
+  AuthenticatedFlashcardsIndexRoute: typeof AuthenticatedFlashcardsIndexRoute
   AuthenticatedHabitosIndexRoute: typeof AuthenticatedHabitosIndexRoute
   AuthenticatedTreinoIndexRoute: typeof AuthenticatedTreinoIndexRoute
 }
@@ -660,12 +702,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDietaCaloriasRoute: AuthenticatedDietaCaloriasRoute,
   AuthenticatedDietaConsistenciaRoute: AuthenticatedDietaConsistenciaRoute,
   AuthenticatedDietaEvolucaoRoute: AuthenticatedDietaEvolucaoRoute,
+  AuthenticatedFlashcardsIdRoute: AuthenticatedFlashcardsIdRoute,
   AuthenticatedHabitosIdRoute: AuthenticatedHabitosIdRoute,
   AuthenticatedTreinoIdRoute: AuthenticatedTreinoIdRoute,
   AuthenticatedTreinoExerciciosRoute: AuthenticatedTreinoExerciciosRoute,
   AuthenticatedAlunosIndexRoute: AuthenticatedAlunosIndexRoute,
   AuthenticatedBolsaIndexRoute: AuthenticatedBolsaIndexRoute,
   AuthenticatedDietaIndexRoute: AuthenticatedDietaIndexRoute,
+  AuthenticatedFlashcardsIndexRoute: AuthenticatedFlashcardsIndexRoute,
   AuthenticatedHabitosIndexRoute: AuthenticatedHabitosIndexRoute,
   AuthenticatedTreinoIndexRoute: AuthenticatedTreinoIndexRoute,
 }
