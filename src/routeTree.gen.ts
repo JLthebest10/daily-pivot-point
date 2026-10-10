@@ -33,6 +33,7 @@ import { Route as AuthenticatedDietaIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedDietaCaloriasRouteImport } from './routes/_authenticated/dieta.calorias'
 import { Route as AuthenticatedDietaConsistenciaRouteImport } from './routes/_authenticated/dieta.consistencia'
 import { Route as AuthenticatedDietaEvolucaoRouteImport } from './routes/_authenticated/dieta.evolucao'
+import { Route as AuthenticatedFlashcardsIndexRouteImport } from './routes/_authenticated/flashcards.index'
 import { Route as AuthenticatedHabitosIndexRouteImport } from './routes/_authenticated/habitos.index'
 import { Route as AuthenticatedHabitosIdRouteImport } from './routes/_authenticated/habitos.$id'
 import { Route as AuthenticatedTreinoIndexRouteImport } from './routes/_authenticated/treino.index'
@@ -165,6 +166,12 @@ const AuthenticatedDietaEvolucaoRoute =
     path: '/dieta/evolucao',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedFlashcardsIndexRoute =
+  AuthenticatedFlashcardsIndexRouteImport.update({
+    id: '/flashcards/',
+    path: '/flashcards/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHabitosIndexRoute =
   AuthenticatedHabitosIndexRouteImport.update({
     id: '/habitos/',
@@ -226,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/alunos/': typeof AuthenticatedAlunosIndexRoute
   '/bolsa/': typeof AuthenticatedBolsaIndexRoute
   '/dieta/': typeof AuthenticatedDietaIndexRoute
+  '/flashcards/': typeof AuthenticatedFlashcardsIndexRoute
   '/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/treino/': typeof AuthenticatedTreinoIndexRoute
   '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
@@ -257,6 +265,7 @@ export interface FileRoutesByTo {
   '/alunos': typeof AuthenticatedAlunosIndexRoute
   '/bolsa': typeof AuthenticatedBolsaIndexRoute
   '/dieta': typeof AuthenticatedDietaIndexRoute
+  '/flashcards': typeof AuthenticatedFlashcardsIndexRoute
   '/habitos': typeof AuthenticatedHabitosIndexRoute
   '/treino': typeof AuthenticatedTreinoIndexRoute
   '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
@@ -290,6 +299,7 @@ export interface FileRoutesById {
   '/_authenticated/alunos/': typeof AuthenticatedAlunosIndexRoute
   '/_authenticated/bolsa/': typeof AuthenticatedBolsaIndexRoute
   '/_authenticated/dieta/': typeof AuthenticatedDietaIndexRoute
+  '/_authenticated/flashcards/': typeof AuthenticatedFlashcardsIndexRoute
   '/_authenticated/habitos/': typeof AuthenticatedHabitosIndexRoute
   '/_authenticated/treino/': typeof AuthenticatedTreinoIndexRoute
   '/api/public/siri/events': typeof ApiPublicSiriEventsRoute
@@ -323,6 +333,7 @@ export interface FileRouteTypes {
     | '/alunos/'
     | '/bolsa/'
     | '/dieta/'
+    | '/flashcards/'
     | '/habitos/'
     | '/treino/'
     | '/api/public/siri/events'
@@ -354,6 +365,7 @@ export interface FileRouteTypes {
     | '/alunos'
     | '/bolsa'
     | '/dieta'
+    | '/flashcards'
     | '/habitos'
     | '/treino'
     | '/api/public/siri/events'
@@ -386,6 +398,7 @@ export interface FileRouteTypes {
     | '/_authenticated/alunos/'
     | '/_authenticated/bolsa/'
     | '/_authenticated/dieta/'
+    | '/_authenticated/flashcards/'
     | '/_authenticated/habitos/'
     | '/_authenticated/treino/'
     | '/api/public/siri/events'
@@ -569,6 +582,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDietaEvolucaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/flashcards/': {
+      id: '/_authenticated/flashcards/'
+      path: '/flashcards'
+      fullPath: '/flashcards/'
+      preLoaderRoute: typeof AuthenticatedFlashcardsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/habitos/': {
       id: '/_authenticated/habitos/'
       path: '/habitos'
@@ -638,6 +658,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAlunosIndexRoute: typeof AuthenticatedAlunosIndexRoute
   AuthenticatedBolsaIndexRoute: typeof AuthenticatedBolsaIndexRoute
   AuthenticatedDietaIndexRoute: typeof AuthenticatedDietaIndexRoute
+  AuthenticatedFlashcardsIndexRoute: typeof AuthenticatedFlashcardsIndexRoute
   AuthenticatedHabitosIndexRoute: typeof AuthenticatedHabitosIndexRoute
   AuthenticatedTreinoIndexRoute: typeof AuthenticatedTreinoIndexRoute
 }
@@ -666,6 +687,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAlunosIndexRoute: AuthenticatedAlunosIndexRoute,
   AuthenticatedBolsaIndexRoute: AuthenticatedBolsaIndexRoute,
   AuthenticatedDietaIndexRoute: AuthenticatedDietaIndexRoute,
+  AuthenticatedFlashcardsIndexRoute: AuthenticatedFlashcardsIndexRoute,
   AuthenticatedHabitosIndexRoute: AuthenticatedHabitosIndexRoute,
   AuthenticatedTreinoIndexRoute: AuthenticatedTreinoIndexRoute,
 }
