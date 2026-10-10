@@ -50,6 +50,13 @@
       "when": 1791651537092,
       "tag": "0006_flashcards_module",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791674010272,
+      "tag": "0007_guitar_module",
+      "breakpoints": true
     }
   ]
 }

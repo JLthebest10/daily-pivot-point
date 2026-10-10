@@ -913,6 +913,81 @@ export type Database = {
         }
         Relationships: []
       }
+      guitar_custom_chords: {
+        Row: {
+          created_at: string
+          fingers: string | null
+          frets: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fingers?: string | null
+          frets: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fingers?: string | null
+          frets?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      guitar_songs: {
+        Row: {
+          artist: string | null
+          created_at: string
+          difficulty: string | null
+          favorite: boolean
+          id: string
+          lyrics: string | null
+          notes: string | null
+          sections: Json
+          song_key: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          artist?: string | null
+          created_at?: string
+          difficulty?: string | null
+          favorite?: boolean
+          id?: string
+          lyrics?: string | null
+          notes?: string | null
+          sections?: Json
+          song_key?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          artist?: string | null
+          created_at?: string
+          difficulty?: string | null
+          favorite?: boolean
+          id?: string
+          lyrics?: string | null
+          notes?: string | null
+          sections?: Json
+          song_key?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       habit_completions: {
         Row: {
           created_at: string
