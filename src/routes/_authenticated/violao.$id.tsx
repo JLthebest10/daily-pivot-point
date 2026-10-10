@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Pencil, Play, Star, Trash2 } from "lucide-react";
 import { useList, useRemove, useSave } from "@/lib/db";
-import { DIFFICULTY_LABEL, chordLabel, resolveChord, songChords, type Song } from "@/lib/guitar";
+import { DIFFICULTY_LABEL, chordLabel, resolveChord, type Song } from "@/lib/guitar";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -76,7 +76,6 @@ function SongPage() {
 
   const sections = song.sections ?? [];
   const isParts = song.chord_mode === "parts";
-  const chords = songChords(song);
   const hasCifra = isParts ? sections.length > 0 : (song.chords ?? []).length > 0;
 
   return (
