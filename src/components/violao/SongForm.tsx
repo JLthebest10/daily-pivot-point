@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Plus, Trash2, X } from "lucide-react";
 import { useSave } from "@/lib/db";
 import {
   DIFFICULTY_LABEL,
   SECTION_PRESETS,
   isYoutubeUrl,
+  chordLabel,
   newSectionId,
+  resolveChord,
   youtubeId,
   type Song,
   type SongSection,
@@ -15,7 +17,75 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field } from "@/components/ui-kit";
 import { selectCls } from "@/components/flashcards/TopicForm";
-import { ChordPickerDialog } from "./ChordPicker";
+import { ChordPickerDialog, useCustomChords } from "./ChordPicker";
+import { ChordDiagram } from "./ChordDiagram";
+import { cn } from "@/lib/utils";
+
+type PickTarget = { kind: "full"; index: number } | { kind: "section"; id: string };
+
+/** Ordered chord sequence with move / remove / insert-between controls. */
+function FullSequence({
+  chords,
+  onChange,
+  onInsert,
+}: {
+  chords: string[];
+  onChange: (c: string[]) => void;
+  onInsert: (index: number) => void;
+}) {
+  const custom = useCustomChords();
+  const move = (i: number, d: number) => {
+    const j = i + d;
+    if (j < 0 || j >= chords.length) return;
+    const c = [...chords];
+    [c[i], c[j]] = [c[j]!, c[i]!];
+    onChange(c);
+  };
+  if (!chords.length)
+    return (
+      <button
+        type="button"
+        onClick={() => onInsert(0)}
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border py-6 text-sm text-muted-foreground"
+      >
+        <Plus className="size-4" /> Adicionar primeiro acorde
+      </button>
+    );
+  return (
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+      {chords.map((ref, i) => {
+        const v = resolveChord(ref, custom);
+        return (
+          <div key={i} className="surface flex flex-col items-center gap-1 p-1.5">
+            <span className="self-start text-[10px] text-muted-foreground">{i + 1}</span>
+            {v ? <ChordDiagram voicing={v} size="sm" /> : <p className="py-6 text-sm font-semibold">{chordLabel(ref, custom)}</p>}
+            <div className="flex w-full justify-between">
+              <button type="button" aria-label="Mover para antes" disabled={i === 0} onClick={() => move(i, -1)} className="rounded-md p-1.5 disabled:opacity-30">
+                <ArrowLeft className="size-4" />
+              </button>
+              <button type="button" aria-label="Remover acorde" onClick={() => onChange(chords.filter((_, k) => k !== i))} className="rounded-md p-1.5 text-destructive">
+                <X className="size-4" />
+              </button>
+              <button type="button" aria-label="Mover para depois" disabled={i === chords.length - 1} onClick={() => move(i, 1)} className="rounded-md p-1.5 disabled:opacity-30">
+                <ArrowRight className="size-4" />
+              </button>
+            </div>
+            <button type="button" onClick={() => onInsert(i + 1)} className="w-full rounded-md border border-dashed border-border py-1 text-[11px] text-muted-foreground">
+              + inserir depois
+            </button>
+          </div>
+        );
+      })}
+      <button
+        type="button"
+        onClick={() => onInsert(chords.length)}
+        className="flex min-h-32 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border text-xs text-muted-foreground"
+      >
+        <Plus className="size-5" /> Acorde
+      </button>
+    </div>
+  );
+}
 
 export function SongForm({ initial, onDone }: { initial?: Song; onDone: (id?: string) => void }) {
   const save = useSave("guitar_songs", initial ? "Música atualizada" : "Música adicionada");
@@ -29,7 +99,10 @@ export function SongForm({ initial, onDone }: { initial?: Song; onDone: (id?: st
     lyrics: initial?.lyrics ?? "",
   });
   const [sections, setSections] = useState<SongSection[]>(initial?.sections ?? []);
-  const [pickFor, setPickFor] = useState<string | null>(null);
+  const [mode, setMode] = useState<"full" | "parts">(initial?.chord_mode ?? "full");
+  const [chords, setChords] = useState<string[]>(initial?.chords ?? []);
+  const [pick, setPick] = useState<PickTarget | null>(null);
+  const custom = useCustomChords();
   const videoBad = f.video_url.trim() !== "" && !isYoutubeUrl(f.video_url);
   const vid = youtubeId(f.video_url);
 
@@ -59,6 +132,8 @@ export function SongForm({ initial, onDone }: { initial?: Song; onDone: (id?: st
           notes: f.notes.trim() || null,
           video_url: f.video_url.trim() || null,
           lyrics: f.lyrics.replace(/\s+$/, "") || null,
+          chord_mode: mode,
+          chords,
           sections: sections.map((s) => ({ ...s, name: s.name.trim() || "Parte", text: s.text?.trim() || undefined })),
         });
         onDone((row as { id?: string } | undefined)?.id);
@@ -112,10 +187,30 @@ export function SongForm({ initial, onDone }: { initial?: Song; onDone: (id?: st
 
       <section className="space-y-3">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Cifras da música</h3>
-        {sections.length === 0 && (
+        <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1" role="radiogroup" aria-label="Forma de organizar a cifra">
+          {([["full", "Cifra completa"], ["parts", "Cifra por partes"]] as const).map(([k, l]) => (
+            <button
+              key={k}
+              type="button"
+              role="radio"
+              aria-checked={mode === k}
+              onClick={() => setMode(k)}
+              className={cn("rounded-md py-2 text-sm transition-colors", mode === k ? "bg-background font-medium shadow-sm" : "text-muted-foreground")}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+        {mode === "full" && (
+          <>
+            <p className="text-xs text-muted-foreground">Adicione os acordes na ordem em que aparecem. Pode repetir o mesmo acorde.</p>
+            <FullSequence chords={chords} onChange={setChords} onInsert={(index) => setPick({ kind: "full", index })} />
+          </>
+        )}
+        {mode === "parts" && sections.length === 0 && (
           <p className="text-xs text-muted-foreground">Opcional. Adicione partes e escolha os acordes de cada uma.</p>
         )}
-        {sections.map((s, i) => (
+        {mode === "parts" && sections.map((s, i) => (
           <div key={s.id} className="surface space-y-2 p-3">
             <div className="flex items-center gap-1">
               <Input
@@ -138,10 +233,10 @@ export function SongForm({ initial, onDone }: { initial?: Song; onDone: (id?: st
             <div className="flex flex-wrap gap-1.5">
               {s.chords.map((c, ci) => (
                 <span key={ci} className="flex items-center gap-1 rounded-full bg-primary/15 py-1 pl-2.5 pr-1 text-xs font-semibold text-primary">
-                  {c}
+                  {chordLabel(c, custom)}
                   <button
                     type="button"
-                    aria-label={`Remover ${c}`}
+                    aria-label={`Remover ${chordLabel(c, custom)}`}
                     className="rounded-full p-0.5 hover:bg-primary/20"
                     onClick={() => upd(s.id, { chords: s.chords.filter((_, k) => k !== ci) })}
                   >
@@ -151,7 +246,7 @@ export function SongForm({ initial, onDone }: { initial?: Song; onDone: (id?: st
               ))}
               <button
                 type="button"
-                onClick={() => setPickFor(s.id)}
+                onClick={() => setPick({ kind: "section", id: s.id })}
                 className="flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs text-muted-foreground"
               >
                 <Plus className="size-3" /> Acorde
@@ -169,7 +264,7 @@ export function SongForm({ initial, onDone }: { initial?: Song; onDone: (id?: st
         <datalist id="section-presets">
           {SECTION_PRESETS.map((p) => <option key={p} value={p} />)}
         </datalist>
-        <div className="flex flex-wrap gap-1.5">
+        {mode === "parts" && <div className="flex flex-wrap gap-1.5">
           {SECTION_PRESETS.map((p) => (
             <button
               key={p}
@@ -180,7 +275,7 @@ export function SongForm({ initial, onDone }: { initial?: Song; onDone: (id?: st
               + {p}
             </button>
           ))}
-        </div>
+        </div>}
       </section>
 
       <section className="space-y-3">
@@ -198,10 +293,12 @@ export function SongForm({ initial, onDone }: { initial?: Song; onDone: (id?: st
       </Button>
 
       <ChordPickerDialog
-        open={pickFor !== null}
-        onOpenChange={(v) => !v && setPickFor(null)}
-        onPick={(name) => {
-          if (pickFor) setSections((x) => x.map((s) => (s.id === pickFor ? { ...s, chords: [...s.chords, name] } : s)));
+        open={pick !== null}
+        onOpenChange={(v) => !v && setPick(null)}
+        onPick={(ref) => {
+          if (!pick) return;
+          if (pick.kind === "full") setChords((c) => [...c.slice(0, pick.index), ref, ...c.slice(pick.index)]);
+          else setSections((x) => x.map((s) => (s.id === pick.id ? { ...s, chords: [...s.chords, ref] } : s)));
         }}
       />
     </form>
