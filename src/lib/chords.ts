@@ -27,6 +27,8 @@ export type Voicing = {
   baseFret: number; // first fret shown in the diagram
   barre: { fret: number; from: number; to: number } | null; // string indices 0..5
   custom?: boolean;
+  id?: string; // custom chord row id
+  note?: string | null;
 };
 
 export type CategoryKey =
