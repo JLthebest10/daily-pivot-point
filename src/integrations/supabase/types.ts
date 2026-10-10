@@ -915,27 +915,45 @@ export type Database = {
       }
       guitar_custom_chords: {
         Row: {
+          base_fret: number | null
+          category: string | null
           created_at: string
           fingers: string | null
           frets: string
           id: string
           name: string
+          note: string | null
+          positions: Json | null
+          strings: Json | null
+          updated_at: string
           user_id: string
         }
         Insert: {
+          base_fret?: number | null
+          category?: string | null
           created_at?: string
           fingers?: string | null
           frets: string
           id?: string
           name: string
+          note?: string | null
+          positions?: Json | null
+          strings?: Json | null
+          updated_at?: string
           user_id: string
         }
         Update: {
+          base_fret?: number | null
+          category?: string | null
           created_at?: string
           fingers?: string | null
           frets?: string
           id?: string
           name?: string
+          note?: string | null
+          positions?: Json | null
+          strings?: Json | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -943,6 +961,8 @@ export type Database = {
       guitar_songs: {
         Row: {
           artist: string | null
+          chord_mode: string
+          chords: Json
           created_at: string
           difficulty: string | null
           favorite: boolean
@@ -958,6 +978,8 @@ export type Database = {
         }
         Insert: {
           artist?: string | null
+          chord_mode?: string
+          chords?: Json
           created_at?: string
           difficulty?: string | null
           favorite?: boolean
@@ -973,6 +995,8 @@ export type Database = {
         }
         Update: {
           artist?: string | null
+          chord_mode?: string
+          chords?: Json
           created_at?: string
           difficulty?: string | null
           favorite?: boolean
