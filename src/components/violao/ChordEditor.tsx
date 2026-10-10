@@ -16,7 +16,7 @@ const STRING_NAMES = ["6ª", "5ª", "4ª", "3ª", "2ª", "1ª"];
 const FINGER_NAMES = ["", "Indicador", "Médio", "Anelar", "Mínimo"];
 
 /** Visual fretboard editor. Stores exactly what the user draws (string, fret, finger). */
-export function ChordEditor({ initial, onDone }: { initial?: CustomChordRow; onDone: () => void }) {
+export function ChordEditor({ initial, onDone }: { initial?: CustomChordRow | undefined; onDone: () => void }) {
   const save = useSave("guitar_custom_chords", initial ? "Acorde atualizado" : "Acorde salvo");
   const [name, setName] = useState(initial?.name ?? "");
   const [category, setCategory] = useState(initial?.category ?? "");
