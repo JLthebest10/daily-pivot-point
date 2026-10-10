@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Pencil, Play, Star, Trash2 } from "lucide-react";
 import { useList, useRemove, useSave } from "@/lib/db";
-import { DIFFICULTY_LABEL, songChords, voicingFor, type Song } from "@/lib/guitar";
+import { DIFFICULTY_LABEL, chordLabel, resolveChord, type Song } from "@/lib/guitar";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -37,16 +37,16 @@ export const Route = createFileRoute("/_authenticated/violao/$id")({
 function Chords({ names }: { names: string[] }) {
   const custom = useCustomChords();
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="grid grid-cols-2 gap-3 min-[380px]:grid-cols-3 sm:grid-cols-4">
       {names.map((n, i) => {
-        const v = voicingFor(n, custom);
+        const v = resolveChord(n, custom);
         return v ? (
-          <div key={n + i} className="surface px-1.5 py-2">
-            <ChordDiagram voicing={v} size="md" />
+          <div key={n + i} className="surface px-2 py-3">
+            <ChordDiagram voicing={v} size="fluid" />
           </div>
         ) : (
-          <div key={n + i} className="surface flex w-[104px] flex-col items-center justify-center px-2 py-3 text-center">
-            <p className="text-sm font-semibold">{n}</p>
+          <div key={n + i} className="surface flex flex-col items-center justify-center px-2 py-6 text-center">
+            <p className="text-base font-semibold">{chordLabel(n, custom)}</p>
             <p className="mt-1 text-[10px] text-muted-foreground">Sem diagrama na biblioteca</p>
           </div>
         );
@@ -75,7 +75,8 @@ function SongPage() {
     );
 
   const sections = song.sections ?? [];
-  const chords = songChords(sections);
+  const isParts = song.chord_mode === "parts";
+  const hasCifra = isParts ? sections.length > 0 : (song.chords ?? []).length > 0;
 
   return (
     <>
@@ -120,25 +121,22 @@ function SongPage() {
         </Button>
       </div>
 
-      {chords.length > 0 && (
-        <section className="mb-8">
-          <SectionTitle>Acordes da música</SectionTitle>
-          <Chords names={chords} />
-        </section>
-      )}
-
-      {sections.length > 0 && (
-        <section className="mb-8 space-y-5">
-          <SectionTitle>Cifra</SectionTitle>
-          {sections.map((s) => (
-            <div key={s.id}>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-primary">{s.name}</h3>
-              {s.chords.length > 0 && (
-                <p className="mb-2 text-sm font-semibold">{s.chords.join("  ·  ")}</p>
-              )}
-              {s.text && <pre className="surface whitespace-pre-wrap px-4 py-3 font-mono text-xs leading-relaxed">{s.text}</pre>}
+      {hasCifra && (
+        <section className="mb-10">
+          <h2 className="mb-3 text-lg font-semibold tracking-tight">Cifra</h2>
+          {!isParts ? (
+            <Chords names={song.chords} />
+          ) : (
+            <div className="space-y-6">
+              {sections.map((s) => (
+                <div key={s.id}>
+                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-primary">{s.name}</h3>
+                  {s.chords.length > 0 && <Chords names={s.chords} />}
+                  {s.text && <pre className="surface mt-2 whitespace-pre-wrap px-4 py-3 font-mono text-xs leading-relaxed">{s.text}</pre>}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </section>
       )}
 
@@ -156,7 +154,7 @@ function SongPage() {
         </section>
       )}
 
-      {!chords.length && !song.lyrics && !song.notes && (
+      {!hasCifra && !song.lyrics && !song.notes && (
         <p className="text-sm text-muted-foreground">Cifra e letra ainda não cadastradas. Toque em Editar para adicionar.</p>
       )}
 
