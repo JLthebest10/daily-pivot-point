@@ -12,11 +12,11 @@ export const ChordDiagram = memo(function ChordDiagram({
   className,
 }: {
   voicing: Voicing;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "fluid";
   showName?: boolean;
   className?: string;
 }) {
-  const width = size === "sm" ? 76 : size === "md" ? 104 : 200;
+  const width = size === "sm" ? 76 : size === "md" ? 104 : size === "fluid" ? "100%" : 200;
   const { frets, fingers, baseFret, barre } = voicing;
   const left = 18, top = 22, gap = 14, fretH = 17;
   const w = gap * 5, h = fretH * ROWS;
@@ -26,7 +26,7 @@ export const ChordDiagram = memo(function ChordDiagram({
   return (
     <figure className={cn("flex flex-col items-center", className)} style={{ width }}>
       {showName && (
-        <figcaption className={cn("font-semibold leading-tight", size === "lg" ? "text-xl" : "text-sm")}>
+        <figcaption className={cn("font-semibold leading-tight", size === "lg" || size === "fluid" ? "text-lg" : "text-sm")}>
           {voicing.name}
         </figcaption>
       )}

@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { CATEGORIES, CHORD_LIBRARY, customToVoicing, searchChords, type CategoryKey, type Voicing } from "@/lib/chords";
+import { CATEGORIES, CHORD_LIBRARY, searchChords, type CategoryKey, type Voicing } from "@/lib/chords";
 import { useList } from "@/lib/db";
-import type { CustomChordRow } from "@/lib/guitar";
+import { customRef, rowToVoicing, type CustomChordRow } from "@/lib/guitar";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ChordDiagram } from "./ChordDiagram";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 export function useCustomChords(): Voicing[] {
   const q = useList<CustomChordRow>("guitar_custom_chords", { order: { column: "created_at" } });
-  return useMemo(() => (q.data ?? []).map(customToVoicing).filter((v): v is Voicing => !!v), [q.data]);
+  return useMemo(() => (q.data ?? []).map(rowToVoicing).filter((v): v is Voicing => !!v), [q.data]);
 }
 
 /** Search + category browser. Shows one voicing per chord name unless `allVoicings`. */
@@ -32,7 +32,7 @@ export function ChordBrowser({
     if (cat !== "todos" && cat !== "meus") res = res.filter((v) => v.category === cat);
     if (!allVoicings) {
       const seen = new Set<string>();
-      res = res.filter((v) => (seen.has(v.name) ? false : (seen.add(v.name), true)));
+      res = res.filter((v) => (seen.has(v.id ?? v.name) ? false : (seen.add(v.id ?? v.name), true)));
     }
     return res.slice(0, 240);
   }, [query, cat, custom, allVoicings]);
@@ -94,18 +94,19 @@ export function ChordPickerDialog({
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onPick: (name: string) => void;
+  onPick: (ref: string) => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Escolher acorde</DialogTitle>
+          <p className="text-xs text-muted-foreground">Seus acordes criados aparecem em “Meus acordes”.</p>
         </DialogHeader>
         {open && (
           <ChordBrowser
             onSelect={(v) => {
-              onPick(v.name);
+              onPick(v.id ? customRef(v.id) : v.name);
               onOpenChange(false);
             }}
           />
