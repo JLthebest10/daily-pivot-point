@@ -168,14 +168,8 @@ export function OfflineVideoPanel({ song }: { song: Song }) {
     setProgress(null);
     await syncMeta(song, { status: "downloading", source: "import", error: null });
     try {
-      // Read in chunks so the progress bar reflects real work on large files
-      const parts: BlobPart[] = [];
-      const step = 8 * 1024 * 1024;
-      for (let i = 0; i < file.size; i += step) {
-        parts.push(await file.slice(i, i + step).arrayBuffer());
-        setProgress(Math.min(1, (i + step) / file.size) * 0.9);
-      }
-      const blob = new Blob(parts, { type: file.type || "video/mp4" });
+      // Stored as-is (no in-memory copy) so big files do not crash the phone.
+      const blob = file.type ? file : new Blob([file], { type: "video/mp4" });
       await store(blob, "import", { fileName: file.name });
       setProgress(1);
     } catch (e) {
