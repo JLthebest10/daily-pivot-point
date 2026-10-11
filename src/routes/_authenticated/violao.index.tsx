@@ -1,10 +1,22 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { BookOpen, LayoutGrid, List, Play, Plus, Search, Star } from "lucide-react";
+import { BookOpen, CloudDownload, LayoutGrid, List, Play, Plus, Search, Star } from "lucide-react";
 import { useList } from "@/lib/db";
 import { shortDate, toISODate } from "@/lib/format";
 import { DIFFICULTY_LABEL, chordLabel, filterSongs, songChords, type Song } from "@/lib/guitar";
 import { useCustomChords } from "@/components/violao/ChordPicker";
+import { useEffect } from "react";
+import { listOffline, onOfflineChange } from "@/lib/offline-videos";
+
+function useOfflineIds() {
+  const [ids, setIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const load = () => listOffline().then((r) => setIds(new Set(r.filter((x) => x.status === "done").map((x) => x.songId)))).catch(() => {});
+    load();
+    return onOfflineChange(load);
+  }, []);
+  return ids;
+}
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState, ErrorNote, FormModal, LoadingList, PageHeader } from "@/components/ui-kit";
@@ -33,6 +45,7 @@ function RepertoirePage() {
   const [grid, setGrid] = useState(false);
   const navigate = useNavigate();
   const custom = useCustomChords();
+  const offline = useOfflineIds();
   const songs = q.data ?? [];
   const list = filterSongs(songs, query, fav);
 
@@ -53,11 +66,18 @@ function RepertoirePage() {
         <p className="text-sm text-muted-foreground">
           <span className="num font-semibold text-foreground">{songs.length}</span> {songs.length === 1 ? "música" : "músicas"}
         </p>
+        <div className="flex gap-2">
+        <Button asChild variant="outline" size="sm">
+          <a href="/offline" aria-label="Vídeos offline">
+            <CloudDownload className="size-4" /> <span className="hidden min-[400px]:inline">Offline</span>
+          </a>
+        </Button>
         <Button asChild variant="outline" size="sm">
           <Link to="/violao/acordes">
-            <BookOpen className="size-4" /> Biblioteca de Acordes
+            <BookOpen className="size-4" /> Acordes
           </Link>
         </Button>
+        </div>
       </div>
 
       {q.isLoading ? (
@@ -96,6 +116,7 @@ function RepertoirePage() {
                       <div className="flex items-center gap-1.5">
                         {s.favorite && <Star className="size-3.5 shrink-0 fill-primary text-primary" />}
                         <p className="truncate text-sm font-semibold">{s.title}</p>
+                        {offline.has(s.id) && <CloudDownload className="size-3.5 shrink-0 text-primary" aria-label="Vídeo offline" />}
                       </div>
                       <p className="truncate text-xs text-muted-foreground">
                         {[s.artist, s.difficulty && DIFFICULTY_LABEL[s.difficulty], `adicionada ${shortDate(toISODate(new Date(s.created_at)))}`]
