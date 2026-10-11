@@ -141,6 +141,13 @@ function RootComponent() {
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
 
+  // Offline support (published app only; skipped in dev and inside the editor preview).
+  useEffect(() => {
+    if (import.meta.env.DEV || !("serviceWorker" in navigator) || window.self !== window.top) return;
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }, []);
+
+
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
