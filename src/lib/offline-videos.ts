@@ -122,7 +122,7 @@ export function isVideoType(type: string) {
 export async function fetchVideo(url: string, onProgress: (p: number | null) => void, signal?: AbortSignal): Promise<Blob> {
   let res: Response;
   try {
-    res = await fetch(url, { signal, mode: "cors" });
+    res = await fetch(url, { signal: signal ?? null, mode: "cors" });
   } catch {
     throw new Error("O site do vídeo não permite baixar por aqui. Baixe o arquivo e use “Importar arquivo”.");
   }
