@@ -958,6 +958,65 @@ export type Database = {
         }
         Relationships: []
       }
+      guitar_offline_videos: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          device_id: string
+          device_label: string | null
+          error: string | null
+          id: string
+          local_key: string
+          original_url: string | null
+          size_bytes: number | null
+          song_id: string
+          source: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          device_id: string
+          device_label?: string | null
+          error?: string | null
+          id?: string
+          local_key: string
+          original_url?: string | null
+          size_bytes?: number | null
+          song_id: string
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          device_id?: string
+          device_label?: string | null
+          error?: string | null
+          id?: string
+          local_key?: string
+          original_url?: string | null
+          size_bytes?: number | null
+          song_id?: string
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guitar_offline_videos_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "guitar_songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guitar_songs: {
         Row: {
           artist: string | null

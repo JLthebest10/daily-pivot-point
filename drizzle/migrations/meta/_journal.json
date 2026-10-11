@@ -64,6 +64,13 @@
       "when": 1791675423008,
       "tag": "0008_guitar_full_chords_custom_editor",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791677924447,
+      "tag": "0009_guitar_offline_videos",
+      "breakpoints": true
     }
   ]
 }
