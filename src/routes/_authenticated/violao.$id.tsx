@@ -18,6 +18,7 @@ import { ErrorNote, FormModal, LoadingList, SectionTitle } from "@/components/ui
 import { SongForm } from "@/components/violao/SongForm";
 import { ChordDiagram } from "@/components/violao/ChordDiagram";
 import { useCustomChords } from "@/components/violao/ChordPicker";
+import { OfflineVideoPanel } from "@/components/violao/OfflineVideoPanel";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/violao/$id")({
@@ -105,9 +106,9 @@ function SongPage() {
 
       <div className="mb-6 flex flex-wrap gap-2">
         {song.video_url ? (
-          <Button asChild>
+          <Button asChild variant="outline">
             <a href={song.video_url} target="_blank" rel="noopener noreferrer">
-              <Play className="size-4 fill-current" /> Abrir videoaula
+              <Play className="size-4 fill-current" /> Abrir no YouTube
             </a>
           </Button>
         ) : (
@@ -120,6 +121,8 @@ function SongPage() {
           <Trash2 className="size-4" /> Excluir
         </Button>
       </div>
+
+      <OfflineVideoPanel song={song} />
 
       {hasCifra && (
         <section className="mb-10">
